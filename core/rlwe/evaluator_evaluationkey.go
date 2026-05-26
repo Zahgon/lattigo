@@ -1,11 +1,5 @@
 package rlwe
 
-import (
-	"fmt"
-
-	"github.com/tuneinsight/lattigo/v6/utils"
-)
-
 // ApplyEvaluationKey is a generic method to apply an [EvaluationKey] on a ciphertext.
 // An EvaluationKey is a type of public key that is be used during the evaluation of
 // a homomorphic circuit to provide additional functionalities, like relinearization
@@ -34,76 +28,27 @@ import (
 //   - opOut ring degree must match the evaluator's ring degree.
 //   - evk must have been generated using the key-generator of the large ring degree with as input small-key -> large-key.
 func (eval Evaluator) ApplyEvaluationKey(ctIn *Ciphertext, evk *EvaluationKey, opOut *Ciphertext) (err error) {
-
-	if ctIn.Degree() != 1 || opOut.Degree() != 1 {
-		return fmt.Errorf("cannot ApplyEvaluationKey: input and output Ciphertext must be of degree 1")
-	}
-
-	level := utils.Min(ctIn.Level(), opOut.Level())
-	ringQ := eval.params.RingQ().AtLevel(level)
-
-	NIn := ctIn.Value[0].N()
-	NOut := opOut.Value[0].N()
-
-	// Re-encryption to a larger ring degree.
-	if NIn < NOut {
-
-		if NOut != ringQ.N() {
-			return fmt.Errorf("cannot ApplyEvaluationKey: opOut ring degree does not match evaluator params ring degree")
-		}
-
-		// Maps to larger ring degree Y = X^{N/n} -> X
-		if ctIn.IsNTT {
-			SwitchCiphertextRingDegreeNTT(ctIn.El(), nil, opOut.El())
-		} else {
-			SwitchCiphertextRingDegree(ctIn.El(), opOut.El())
-		}
-
-		// Re-encrypt opOut from the key from small to larger ring degree
-		eval.applyEvaluationKey(level, opOut, evk, opOut)
-
-		// Re-encryption to a smaller ring degree.
-	} else if NIn > NOut {
-
-		if NIn != ringQ.N() {
-			return fmt.Errorf("cannot ApplyEvaluationKey: ctIn ring degree does not match evaluator params ring degree")
-		}
-
-		level := utils.Min(ctIn.Level(), opOut.Level())
-
-		ctTmp := eval.pool.GetBuffCt(ctIn.Degree(), level)
-		defer eval.pool.RecycleBuffCt(ctTmp)
-
-		ctTmp.MetaData = ctIn.MetaData
-
-		// Switches key from large to small degree
-		eval.applyEvaluationKey(level, ctIn, evk, ctTmp)
-
-		// Maps to smaller ring degree X -> Y = X^{N/n}
-		if ctIn.IsNTT {
-			SwitchCiphertextRingDegreeNTT(ctTmp.El(), ringQ, opOut.El())
-		} else {
-			SwitchCiphertextRingDegree(ctTmp.El(), opOut.El())
-		}
-
-		// Re-encryption to the same ring degree.
-	} else {
-		eval.applyEvaluationKey(level, ctIn, evk, opOut)
-	}
-
-	*opOut.MetaData = *ctIn.MetaData
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
-func (eval Evaluator) applyEvaluationKey(level int, ctIn *Ciphertext, evk *EvaluationKey, opOut *Ciphertext) {
-	ctTmp := eval.pool.GetBuffCt(1, level)
-	defer eval.pool.RecycleBuffCt(ctTmp)
-	ctTmp.MetaData = ctIn.MetaData
+// Re-encryption to a larger ring degree.
 
-	eval.GadgetProduct(level, ctIn.Value[1], &evk.GadgetCiphertext, ctTmp)
-	eval.params.RingQ().AtLevel(level).Add(ctIn.Value[0], ctTmp.Value[0], opOut.Value[0])
-	opOut.Value[1].CopyLvl(level, ctTmp.Value[1])
+// Maps to larger ring degree Y = X^{N/n} -> X
+
+// Re-encrypt opOut from the key from small to larger ring degree
+
+// Re-encryption to a smaller ring degree.
+
+// Switches key from large to small degree
+
+// Maps to smaller ring degree X -> Y = X^{N/n}
+
+// Re-encryption to the same ring degree.
+
+func (eval Evaluator) applyEvaluationKey(level int, ctIn *Ciphertext, evk *EvaluationKey, opOut *Ciphertext) {
+	_ = "STUB: not implemented"
+	return
 }
 
 // Relinearize applies the relinearization procedure on ct0 and returns the result in opOut.
@@ -118,31 +63,6 @@ func (eval Evaluator) applyEvaluationKey(level int, ctIn *Ciphertext, evk *Evalu
 //
 // is missing.
 func (eval Evaluator) Relinearize(ctIn *Ciphertext, opOut *Ciphertext) (err error) {
-
-	if ctIn.Degree() != 2 {
-		return fmt.Errorf("cannot relinearize: ctIn.Degree() should be 2 but is %d", ctIn.Degree())
-	}
-
-	var rlk *RelinearizationKey
-	if rlk, err = eval.CheckAndGetRelinearizationKey(); err != nil {
-		return fmt.Errorf("cannot relinearize: %w", err)
-	}
-
-	level := utils.Min(ctIn.Level(), opOut.Level())
-
-	ringQ := eval.params.RingQ().AtLevel(level)
-
-	ctTmp := eval.pool.GetBuffCt(1, ringQ.Level())
-	defer eval.pool.RecycleBuffCt(ctTmp)
-	ctTmp.MetaData = ctIn.MetaData
-
-	eval.GadgetProduct(level, ctIn.Value[2], &rlk.GadgetCiphertext, ctTmp)
-	ringQ.Add(ctIn.Value[0], ctTmp.Value[0], opOut.Value[0])
-	ringQ.Add(ctIn.Value[1], ctTmp.Value[1], opOut.Value[1])
-
-	opOut.Resize(1, level)
-
-	*opOut.MetaData = *ctIn.MetaData
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }

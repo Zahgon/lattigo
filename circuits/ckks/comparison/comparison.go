@@ -2,13 +2,9 @@
 package comparison
 
 import (
-	"math/big"
-
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/minimax"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/schemes/ckks"
-	"github.com/tuneinsight/lattigo/v6/utils"
-	"github.com/tuneinsight/lattigo/v6/utils/bignum"
 )
 
 // Evaluator is an evaluator providing an API for homomorphic comparisons.
@@ -35,19 +31,8 @@ type Evaluator struct {
 //
 // This method is allocation free if a MinimaxCompositePolynomial is given.
 func NewEvaluator(params ckks.Parameters, eval *minimax.Evaluator, signPoly ...minimax.Polynomial) *Evaluator {
-	if len(signPoly) == 1 {
-		return &Evaluator{
-			Parameters:                     params,
-			Evaluator:                      eval,
-			MinimaxCompositeSignPolynomial: signPoly[0],
-		}
-	} else {
-		return &Evaluator{
-			Parameters:                     params,
-			Evaluator:                      eval,
-			MinimaxCompositeSignPolynomial: minimax.NewPolynomial(DefaultCompositePolynomialForSign),
-		}
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // DefaultCompositePolynomialForSign is an example of composite minimax polynomial
@@ -73,34 +58,18 @@ var DefaultCompositePolynomialForSign = [][]string{
 // Sign evaluates f(x) = 1 if x > 0, -1 if x < 0, else 0.
 // This will ensure that sign.Scale = params.DefaultScale().
 func (eval Evaluator) Sign(op0 *rlwe.Ciphertext) (sign *rlwe.Ciphertext, err error) {
-	return eval.Evaluate(op0, eval.MinimaxCompositeSignPolynomial)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // Step evaluates f(x) = 1 if x > 0, 0 if x < 0, else 0.5 (i.e. (sign+1)/2).
 // This will ensure that step.Scale = params.DefaultScale().
 func (eval Evaluator) Step(op0 *rlwe.Ciphertext) (step *rlwe.Ciphertext, err error) {
-
-	n := len(eval.MinimaxCompositeSignPolynomial)
-
-	stepPoly := make([]bignum.Polynomial, n)
-
-	for i := 0; i < n; i++ {
-		stepPoly[i] = eval.MinimaxCompositeSignPolynomial[i]
-	}
-
-	half := new(big.Float).SetFloat64(0.5)
-
-	// (x+1)/2
-	lastPoly := eval.MinimaxCompositeSignPolynomial[n-1].Clone()
-	for i := range lastPoly.Coeffs {
-		lastPoly.Coeffs[i][0].Mul(lastPoly.Coeffs[i][0], half)
-	}
-	lastPoly.Coeffs[0][0].Add(lastPoly.Coeffs[0][0], half)
-
-	stepPoly[n-1] = lastPoly
-
-	return eval.Evaluate(op0, stepPoly)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// (x+1)/2
 
 // Max returns the smooth maximum of op0 and op1, which is defined as: op0 * x + op1 * (1-x) where x = step(diff = op0-op1).
 // Use must ensure that:
@@ -109,20 +78,13 @@ func (eval Evaluator) Step(op0 *rlwe.Ciphertext) (step *rlwe.Ciphertext, err err
 //
 // This method ensures that max.Scale = params.DefaultScale.
 func (eval Evaluator) Max(op0, op1 *rlwe.Ciphertext) (max *rlwe.Ciphertext, err error) {
+	_ = "STUB: not implemented"
 
 	// step * diff
-	var stepdiff *rlwe.Ciphertext
-	if stepdiff, err = eval.stepdiff(op0, op1); err != nil {
-		return
-	}
-
-	// max = step * diff + op1
-	if err = eval.Add(stepdiff, op1, stepdiff); err != nil {
-		return
-	}
-
-	return stepdiff, nil
+	return nil, nil
 }
+
+// max = step * diff + op1
 
 // Min returns the smooth min of op0 and op1, which is defined as: op0 * (1-x) + op1 * x where x = step(diff = op0-op1)
 // Use must ensure that:
@@ -131,76 +93,28 @@ func (eval Evaluator) Max(op0, op1 *rlwe.Ciphertext) (max *rlwe.Ciphertext, err 
 //
 // This method ensures that min.Scale = params.DefaultScale.
 func (eval Evaluator) Min(op0, op1 *rlwe.Ciphertext) (min *rlwe.Ciphertext, err error) {
+	_ = "STUB: not implemented"
 
 	// step * diff
-	var stepdiff *rlwe.Ciphertext
-	if stepdiff, err = eval.stepdiff(op0, op1); err != nil {
-		return
-	}
-
-	// min = op0 - step * diff
-	if err = eval.Sub(op0, stepdiff, stepdiff); err != nil {
-		return
-	}
-
-	return stepdiff, nil
+	return nil, nil
 }
+
+// min = op0 - step * diff
 
 func (eval Evaluator) stepdiff(op0, op1 *rlwe.Ciphertext) (stepdiff *rlwe.Ciphertext, err error) {
-	params := eval.Parameters
+	_ = "STUB: not implemented"
+	return nil,
 
-	// diff = op0 - op1
-	var diff *rlwe.Ciphertext
-	if diff, err = eval.SubNew(op0, op1); err != nil {
-		return
-	}
-
-	// Required for the scale matching before the last multiplication.
-	if diff.Level() < params.LevelsConsumedPerRescaling()*2 {
-		if diff, err = eval.BtsEval.Bootstrap(diff); err != nil {
-			return
-		}
-	}
-
-	// step = 1 if diff > 0, 0 if diff < 0 else 0.5
-	var step *rlwe.Ciphertext
-	if step, err = eval.Step(diff); err != nil {
-		return
-	}
-
-	// Required for the following multiplication
-	if step.Level() < params.LevelsConsumedPerRescaling() {
-		if step, err = eval.BtsEval.Bootstrap(step); err != nil {
-			return
-		}
-	}
-
-	// Extremum gate: op0 * step + op1 * (1 - step) = step * diff + op1
-	level := utils.Min(diff.Level(), step.Level())
-
-	ratio := rlwe.NewScale(1)
-	for i := 0; i < params.LevelsConsumedPerRescaling(); i++ {
-		ratio = ratio.Mul(rlwe.NewScale(params.Q()[level-i]))
-	}
-
-	ratio = ratio.Div(diff.Scale)
-	if err = eval.Mul(diff, &ratio.Value, diff); err != nil {
-		return
-	}
-
-	if err = eval.Rescale(diff, diff); err != nil {
-		return
-	}
-	diff.Scale = diff.Scale.Mul(ratio)
-
-	// max = step * diff
-	if err = eval.MulRelin(diff, step, diff); err != nil {
-		return
-	}
-
-	if err = eval.Rescale(diff, diff); err != nil {
-		return
-	}
-
-	return diff, nil
+		// diff = op0 - op1
+		nil
 }
+
+// Required for the scale matching before the last multiplication.
+
+// step = 1 if diff > 0, 0 if diff < 0 else 0.5
+
+// Required for the following multiplication
+
+// Extremum gate: op0 * step + op1 * (1 - step) = step * diff + op1
+
+// max = step * diff

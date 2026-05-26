@@ -1,8 +1,6 @@
 package ckks
 
 import (
-	"math/big"
-
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
 	"github.com/tuneinsight/lattigo/v6/utils/bignum"
@@ -25,89 +23,16 @@ type TestContext struct {
 	Evl *Evaluator
 }
 
-func NewTestContext(params ParametersLiteral) *TestContext {
-	tc := new(TestContext)
-
-	var err error
-
-	tc.Params, err = NewParametersFromLiteral(params)
-	if err != nil {
-		panic(err)
-	}
-	tc.Ecd = NewEncoder(tc.Params)
-
-	tc.Prng, err = sampling.NewPRNG()
-	if err != nil {
-		panic(err)
-	}
-
-	tc.Kgen = rlwe.NewKeyGenerator(tc.Params)
-	tc.Sk, tc.Pk = tc.Kgen.GenKeyPairNew()
-
-	tc.Enc = rlwe.NewEncryptor(tc.Params, tc.Pk)
-	tc.Dec = rlwe.NewDecryptor(tc.Params, tc.Sk)
-
-	tc.Evl = NewEvaluator(tc.Params, rlwe.NewMemEvaluationKeySet(tc.Kgen.GenRelinearizationKeyNew(tc.Sk)))
-
-	return tc
-}
+func NewTestContext(params ParametersLiteral) *TestContext { _ = "STUB: not implemented"; return nil }
 
 func (tc *TestContext) NewTestVector(a, b complex128) (values []*bignum.Complex, pt *rlwe.Plaintext, ct *rlwe.Ciphertext) {
-	prec := tc.Ecd.Prec()
-
-	pt = NewPlaintext(tc.Params, tc.Params.MaxLevel())
-
-	values = make([]*bignum.Complex, pt.Slots())
-
-	switch tc.Params.RingType() {
-	case ring.Standard:
-		for i := range values {
-			values[i] = &bignum.Complex{
-				bignum.NewFloat(sampling.RandFloat64(real(a), real(b)), prec),
-				bignum.NewFloat(sampling.RandFloat64(imag(a), imag(b)), prec),
-			}
-		}
-	case ring.ConjugateInvariant:
-		for i := range values {
-			values[i] = &bignum.Complex{
-				bignum.NewFloat(sampling.RandFloat64(real(a), real(b)), prec),
-				new(big.Float),
-			}
-		}
-	default:
-		panic("unsupported ring type")
-	}
-
-	var err error
-
-	if err = tc.Ecd.Encode(values, pt); err != nil {
-		panic(err)
-	}
-
-	ct, err = tc.Enc.EncryptNew(pt)
-	if err != nil {
-		panic(err)
-	}
-
-	return values, pt, ct
+	_ = "STUB: not implemented"
+	return nil, nil, nil
 }
 
 func randomConst(tp ring.Type, prec uint, a, b complex128) (constant *bignum.Complex) {
-	switch tp {
-	case ring.Standard:
-		constant = &bignum.Complex{
-			bignum.NewFloat(sampling.RandFloat64(real(a), real(b)), prec),
-			bignum.NewFloat(sampling.RandFloat64(imag(a), imag(b)), prec),
-		}
-	case ring.ConjugateInvariant:
-		constant = &bignum.Complex{
-			bignum.NewFloat(sampling.RandFloat64(real(a), real(b)), prec),
-			new(big.Float),
-		}
-	default:
-		panic("invalid ring type")
-	}
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 var (

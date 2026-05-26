@@ -2,11 +2,8 @@
 package minimax
 
 import (
-	"fmt"
-	"math"
 	"math/big"
 
-	"github.com/tuneinsight/lattigo/v6/utils"
 	"github.com/tuneinsight/lattigo/v6/utils/bignum"
 )
 
@@ -16,42 +13,15 @@ type Polynomial []bignum.Polynomial
 // NewPolynomial creates a new Polynomial from a list of coefficients.
 // Coefficients are expected to be given in the Chebyshev basis.
 func NewPolynomial(coeffsStr [][]string) Polynomial {
-	polys := make([]bignum.Polynomial, len(coeffsStr))
-
-	for i := range coeffsStr {
-
-		coeffs := parseCoeffs(coeffsStr[i])
-
-		poly := bignum.NewPolynomial(
-			bignum.Chebyshev,
-			coeffs,
-			&bignum.Interval{
-				A: *bignum.NewFloat(-1, coeffs[0].Prec()),
-				B: *bignum.NewFloat(1, coeffs[0].Prec()),
-			},
-		)
-
-		polys[i] = poly
-	}
-
-	return Polynomial(polys)
+	_ = "STUB: not implemented"
+	return *new(Polynomial)
 }
 
-func (mcp Polynomial) MaxDepth() (depth int) {
-	for i := range mcp {
-		depth = utils.Max(depth, mcp[i].Depth())
-	}
-	return
-}
+func (mcp Polynomial) MaxDepth() (depth int) { _ = "STUB: not implemented"; return 0 }
 
 func (mcp Polynomial) Evaluate(x interface{}) (y *bignum.Complex) {
-	y = mcp[0].Evaluate(x)
-
-	for _, p := range mcp[1:] {
-		y = p.Evaluate(y)
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // CoeffsSignX2Cheby (from https://eprint.iacr.org/2019/1234.pdf) are the coefficients
@@ -82,17 +52,8 @@ var CoeffsSignX4Cheby = []string{"0", "1.1962890625", "0", "-0.2392578125", "0",
 // See [GenMinimaxCompositePolynomial] for information about how to instantiate and
 // parameterize each input value of the algorithm.
 func GenMinimaxCompositePolynomialForSign(prec uint, logalpha, logerr int, deg []int) {
-
-	coeffs := GenMinimaxCompositePolynomial(prec, logalpha, logerr, deg, bignum.Sign)
-
-	decimals := int(float64(logalpha)/math.Log2(10)+0.5) + 10
-
-	fmt.Println("COEFFICIENTS:")
-	fmt.Printf("{\n")
-	for i := range coeffs {
-		PrettyPrintCoefficients(decimals, coeffs[i], true, false, false)
-	}
-	fmt.Printf("},\n")
+	_ = "STUB: not implemented"
+	return
 }
 
 // GenMinimaxCompositePolynomial generates the minimax composite polynomial
@@ -124,136 +85,46 @@ func GenMinimaxCompositePolynomialForSign(prec uint, logalpha, logerr int, deg [
 //
 // The underlying algorithm use the multi-interval Remez algorithm of https://eprint.iacr.org/2020/834.pdf.
 func GenMinimaxCompositePolynomial(prec uint, logalpha, logerr int, deg []int, f func(*big.Float) *big.Float) (coeffs [][]*big.Float) {
-	decimals := int(float64(logalpha)/math.Log2(10)+0.5) + 10
-
-	// Precision of the output value of the sign polynomial
-	alpha := math.Exp2(-float64(logalpha))
-
-	// Expected upperbound scheme error
-	e := bignum.NewFloat(math.Exp2(-float64(logerr)), prec)
-
-	// Maximum number of iterations
-	maxIters := 50
-
-	// Scan step for finding zeroes of the error function
-	scanStep := bignum.NewFloat(1e-3, prec)
-
-	// Interval [-1, alpha] U [alpha, 1]
-	intervals := []bignum.Interval{
-		{A: *bignum.NewFloat(-1, prec), B: *bignum.NewFloat(-alpha, prec), Nodes: 1 + ((deg[0] + 1) >> 1)},
-		{A: *bignum.NewFloat(alpha, prec), B: *bignum.NewFloat(1, prec), Nodes: 1 + ((deg[0] + 1) >> 1)},
-	}
-
-	// Adds the error to the interval
-	// [A, -alpha] U [alpha, B] becomes [A-e, -alpha] U [alpha, B+e]
-	intervals[0].A.Sub(&intervals[0].A, e)
-	intervals[1].B.Add(&intervals[1].B, e)
-
-	// Parameters of the minimax approximation
-	params := bignum.RemezParameters{
-		Function:        f,
-		Basis:           bignum.Chebyshev,
-		Intervals:       intervals,
-		ScanStep:        scanStep,
-		Prec:            prec,
-		OptimalScanStep: true,
-	}
-
-	fmt.Printf("P[0]\n")
-	fmt.Printf("Interval: [%.*f, %.*f] U [%.*f, %.*f]\n", decimals, &intervals[0].A, decimals, &intervals[0].B, decimals, &intervals[1].A, decimals, &intervals[1].B)
-	r := bignum.NewRemez(params)
-	r.Approximate(maxIters, alpha)
-	//r.ShowCoeffs(decimals)
-	r.ShowError(decimals)
-	fmt.Println()
-
-	coeffs = make([][]*big.Float, len(deg))
-
-	for i := 1; i < len(deg); i++ {
-
-		// New interval as [-(1+max_err), -(1-min_err)] U [1-min_err, 1+max_err]
-		maxInterval := bignum.NewFloat(1, prec)
-		maxInterval.Add(maxInterval, r.MaxErr)
-
-		minInterval := bignum.NewFloat(1, prec)
-		minInterval.Sub(minInterval, r.MinErr)
-
-		// Extends the new interval by the scheme error
-		// [-(1+max_err), -(1-min_err)] U [1-min_err, 1 + max_err] becomes [-(1+max_err+e), -(1-min_err-e)] U [1-min_err-e, 1+max_err+e]
-		maxInterval.Add(maxInterval, e)
-		minInterval.Sub(minInterval, e)
-
-		intervals = []bignum.Interval{
-			{A: *new(big.Float).Neg(maxInterval), B: *new(big.Float).Neg(minInterval), Nodes: 1 + ((deg[i] + 1) >> 1)},
-			{A: *minInterval, B: *maxInterval, Nodes: 1 + ((deg[i] + 1) >> 1)},
-		}
-
-		coeffs[i-1] = make([]*big.Float, deg[i-1]+1)
-		for j := range coeffs[i-1] {
-			coeffs[i-1][j] = new(big.Float).Set(r.Coeffs[j])
-			coeffs[i-1][j].Quo(coeffs[i-1][j], maxInterval) // Interval normalization
-		}
-
-		params := bignum.RemezParameters{
-			Function:        f,
-			Basis:           bignum.Chebyshev,
-			Intervals:       intervals,
-			ScanStep:        scanStep,
-			Prec:            prec,
-			OptimalScanStep: true,
-		}
-
-		fmt.Printf("P[%d]\n", i)
-		fmt.Printf("Interval: [%.*f, %.*f] U [%.*f, %.*f]\n", decimals, &intervals[0].A, decimals, &intervals[0].B, decimals, &intervals[1].A, decimals, &intervals[1].B)
-		r = bignum.NewRemez(params)
-		r.Approximate(maxIters, alpha)
-		//r.ShowCoeffs(decimals)
-		r.ShowError(decimals)
-		fmt.Println()
-	}
-
-	// Since this is the last polynomial, we can skip the interval scaling.
-	coeffs[len(deg)-1] = make([]*big.Float, deg[len(deg)-1]+1)
-	for j := range coeffs[len(deg)-1] {
-		coeffs[len(deg)-1][j] = new(big.Float).Set(r.Coeffs[j])
-	}
-
-	f64, _ := r.MaxErr.Float64()
-	fmt.Printf("Output Precision: %f\n", math.Log2(f64))
-	fmt.Println()
-
-	return coeffs
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// Precision of the output value of the sign polynomial
+
+// Expected upperbound scheme error
+
+// Maximum number of iterations
+
+// Scan step for finding zeroes of the error function
+
+// Interval [-1, alpha] U [alpha, 1]
+
+// Adds the error to the interval
+// [A, -alpha] U [alpha, B] becomes [A-e, -alpha] U [alpha, B+e]
+
+// Parameters of the minimax approximation
+
+//r.ShowCoeffs(decimals)
+
+// New interval as [-(1+max_err), -(1-min_err)] U [1-min_err, 1+max_err]
+
+// Extends the new interval by the scheme error
+// [-(1+max_err), -(1-min_err)] U [1-min_err, 1 + max_err] becomes [-(1+max_err+e), -(1-min_err-e)] U [1-min_err-e, 1+max_err+e]
+
+// Interval normalization
+
+//r.ShowCoeffs(decimals)
+
+// Since this is the last polynomial, we can skip the interval scaling.
 
 // PrettyPrintCoefficients prints the coefficients formatted.
 // If odd = true, even coefficients are zeroed.
 // If even = true, odd coefficients are zeroed.
 func PrettyPrintCoefficients(decimals int, coeffs []*big.Float, odd, even, first bool) {
-	fmt.Printf("{")
-	for i, c := range coeffs {
-		if (i&1 == 1 && odd) || (i&1 == 0 && even) || (i == 0 && first) {
-			fmt.Printf("\"%.*f\", ", decimals, c)
-		} else {
-			fmt.Printf("\"0\", ")
-		}
-
-	}
-	fmt.Printf("},\n")
-}
-
-func parseCoeffs(coeffsStr []string) (coeffs []*big.Float) {
-
-	var prec uint
-	for _, c := range coeffsStr {
-		prec = utils.Max(prec, uint(len(c)))
-	}
-
-	prec = uint(float64(prec)*3.3219280948873626 + 0.5) // max(float64, digits * log2(10))
-
-	coeffs = make([]*big.Float, len(coeffsStr))
-	for i := range coeffsStr {
-		coeffs[i], _ = new(big.Float).SetPrec(prec).SetString(coeffsStr[i])
-	}
-
+	_ = "STUB: not implemented"
 	return
 }
+
+func parseCoeffs(coeffsStr []string) (coeffs []*big.Float) { _ = "STUB: not implemented"; return nil }
+
+// max(float64, digits * log2(10))

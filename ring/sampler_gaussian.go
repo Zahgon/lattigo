@@ -1,11 +1,6 @@
 package ring
 
 import (
-	"encoding/binary"
-	"math"
-	"math/big"
-
-	"github.com/tuneinsight/lattigo/v6/utils/bignum"
 	"github.com/tuneinsight/lattigo/v6/utils/sampling"
 )
 
@@ -25,159 +20,56 @@ type GaussianSampler struct {
 // value.
 // WARNING: If the PRNG is deterministic/keyed (of type [sampling.KeyedPRNG]), *concurrent* calls to the sampler will not necessarily result in a deterministic output.
 func NewGaussianSampler(prng sampling.PRNG, baseRing *Ring, X DiscreteGaussian, montgomery bool) (g *GaussianSampler) {
-	g = new(GaussianSampler)
-	g.baseSampler = &baseSampler{}
-	g.prng = prng
-	g.baseRing = baseRing
-	g.xe = X
-	g.montgomery = montgomery
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // AtLevel returns an instance of the target GaussianSampler that operates at the target level.
 // This instance is not thread safe and cannot be used concurrently to the base instance.
 func (g *GaussianSampler) AtLevel(level int) Sampler {
-	return &GaussianSampler{
-		baseSampler: g.baseSampler.AtLevel(level),
-		xe:          g.xe,
-		montgomery:  g.montgomery,
-	}
+	_ = "STUB: not implemented"
+	return *new(Sampler)
 }
 
 // Read samples a truncated Gaussian polynomial on "pol" at the maximum level in the default ring, standard deviation and bound.
-func (g *GaussianSampler) Read(pol Poly) {
-	g.read(pol, func(a, b, c uint64) uint64 {
-		return b
-	})
-}
+func (g *GaussianSampler) Read(pol Poly) { _ = "STUB: not implemented"; return }
 
 // ReadNew samples a new truncated Gaussian polynomial at the maximum level in the default ring, standard deviation and bound.
-func (g *GaussianSampler) ReadNew() (pol Poly) {
-	pol = g.baseRing.NewPoly()
-	g.Read(pol)
-	return pol
-}
+func (g *GaussianSampler) ReadNew() (pol Poly) { _ = "STUB: not implemented"; return *new(Poly) }
 
 // ReadAndAdd samples a truncated Gaussian polynomial at the given level for the receiver's default standard deviation and bound and adds it on "pol".
-func (g *GaussianSampler) ReadAndAdd(pol Poly) {
-	g.read(pol, func(a, b, c uint64) uint64 {
-		return CRed(a+b, c)
-	})
-}
+func (g *GaussianSampler) ReadAndAdd(pol Poly) { _ = "STUB: not implemented"; return }
 
 func (g *GaussianSampler) read(pol Poly, f func(a, b, c uint64) uint64) {
-	var norm float64
-
-	var sign uint64
-
-	r := g.baseRing
-
-	var randomBufferN [1024]byte
-	var ptr int
-
-	level := r.level
-
-	if _, err := g.prng.Read(randomBufferN[:]); err != nil {
-		// Sanity check, this error should not happen.
-		panic(err)
-	}
-
-	moduli := r.ModuliChain()[:level+1]
-
-	bound := g.xe.Bound
-	sigma := float64(g.xe.Sigma)
-
-	N := r.N()
-
-	coeffs := pol.Coeffs
-
-	// If the standard deviation is greater than float64 precision
-	// and the bound is greater than uint64, we switch to an approximation
-	// using arbitrary precision.
-	//
-	// The approximation of the large norm sampling is done by sampling
-	// a uniform value [0, sigma] * ceil(norm) * sign.
-	if sigma > 0x20000000000000 && bound > 0xffffffffffffffff {
-
-		sigmaInt := new(big.Int)
-		new(big.Float).SetFloat64(sigma).Int(sigmaInt)
-
-		Qi := make([]*big.Int, len(moduli))
-
-		for i, qi := range moduli {
-			Qi[i] = bignum.NewInt(qi)
-		}
-
-		boundInt := new(big.Int)
-		new(big.Float).SetFloat64(bound).Int(boundInt)
-
-		coeff := new(big.Int)
-
-		normInt := new(big.Int)
-		normFlo := new(big.Float)
-		normIntLowBits := new(big.Int)
-
-		for i := 0; i < N; i++ {
-
-			for {
-				// Sample norm with sigma = 1 and sign
-				norm, sign = g.normFloat64(randomBufferN[:], &ptr)
-
-				// Sets normFlo = norm * sigma with precision 53 bits
-				// and 0.5 for rounding discretization
-				normFlo.SetFloat64(norm*sigma + 0.5)
-
-				// Discretizes to an integer
-				normFlo.Int(normInt)
-
-				// Derive the number of zero bits: normInt>>53
-				normIntLowBits.Rsh(normInt, 53)
-
-				// Sample in the size of the number of zero bits and adds
-				// (normInt + rand(normInt>>53)) * sign
-				// This might not be constant time
-				if normIntLowBits.Cmp(new(big.Int)) > 0 {
-					normInt.Add(normInt, bignum.RandInt(g.prng, normIntLowBits))
-				}
-
-				/* #nosec G115 -- sign is 0 or 1 */
-				normInt.Mul(normInt, bignum.NewInt(2*int64(sign)-1))
-
-				if normInt.Cmp(boundInt) < 1 {
-					break
-				}
-			}
-
-			for j, qi := range moduli {
-				coeffs[j][i] = f(coeffs[j][i], coeff.Mod(normInt, Qi[j]).Uint64(), qi)
-			}
-		}
-
-	} else {
-
-		var coeffInt uint64
-
-		for i := 0; i < N; i++ {
-
-			for {
-				norm, sign = g.normFloat64(randomBufferN[:], &ptr)
-
-				if v := norm * sigma; v <= bound {
-					coeffInt = uint64(v + 0.5) // rounding
-					break
-				}
-			}
-
-			for j, qi := range moduli {
-				coeffs[j][i] = f(coeffs[j][i], (coeffInt*sign)|(qi-coeffInt)*(sign^1), qi)
-			}
-		}
-	}
-
-	if g.montgomery {
-		g.baseRing.MForm(pol, pol)
-	}
+	_ = "STUB: not implemented"
+	return
 }
+
+// Sanity check, this error should not happen.
+
+// If the standard deviation is greater than float64 precision
+// and the bound is greater than uint64, we switch to an approximation
+// using arbitrary precision.
+//
+// The approximation of the large norm sampling is done by sampling
+// a uniform value [0, sigma] * ceil(norm) * sign.
+
+// Sample norm with sigma = 1 and sign
+
+// Sets normFlo = norm * sigma with precision 53 bits
+// and 0.5 for rounding discretization
+
+// Discretizes to an integer
+
+// Derive the number of zero bits: normInt>>53
+
+// Sample in the size of the number of zero bits and adds
+// (normInt + rand(normInt>>53)) * sign
+// This might not be constant time
+
+/* #nosec G115 -- sign is 0 or 1 */
+
+// rounding
 
 // NormFloat64 returns a normally distributed float64 in
 // the range [-math.MaxFloat64, +math.MaxFloat64], bounds included,
@@ -190,79 +82,24 @@ func (g *GaussianSampler) read(pol Poly, f func(a, b, c uint64) uint64) {
 // Algorithm adapted from https://golang.org/src/math/rand/normal.go
 // to use a secure PRNG instead of math/rand.
 func (g *GaussianSampler) normFloat64(buff []byte, ptr *int) (float64, uint64) {
-
-	currPtr := *ptr
-	prng := g.prng
-	buffLen := len(buff)
-
-	read := func() {
-		if currPtr == buffLen {
-			if _, err := prng.Read(buff); err != nil {
-				// Sanity check, this error should not happen.
-				panic(err)
-			}
-			currPtr = 0
-		}
-	}
-
-	randU32 := func() (x uint32) {
-		read()
-		x = binary.LittleEndian.Uint32(buff[currPtr : currPtr+4])
-		currPtr += 8 // Avoids buffer misalignment
-		return
-	}
-
-	randF64 := func() (x float64) {
-		read()
-		x = float64(binary.LittleEndian.Uint64(buff[currPtr:currPtr+8])&0x1fffffffffffff) / float64(0x1fffffffffffff)
-		currPtr += 8
-		return
-	}
-
-	for {
-
-		juint32 := randU32()
-
-		/* #nosec G115 -- juint32 is masked to 31 bits */
-		j := int32(juint32 & 0x7fffffff)
-		sign := uint64(juint32 >> 31)
-
-		i := j & 0x7F
-
-		x := float64(j) * float64(wn[i])
-
-		// 1 (>99%)
-		/* #nosec G115 -- j cannot be negative */
-		if uint32(j) < kn[i] {
-			*ptr = currPtr
-			return x, sign
-		}
-
-		// 2 (<1%)
-		if i == 0 {
-
-			// This extra work is only required for the base strip.
-			for {
-
-				x = -math.Log(randF64()) * (1.0 / rn)
-				y := -math.Log(randF64())
-
-				if y+y >= x*x {
-					break
-				}
-			}
-
-			*ptr = currPtr
-			return x + rn, sign
-		}
-
-		// 3
-		if fn[i]+float32(randF64())*(fn[i-1]-fn[i]) < float32(math.Exp(-0.5*x*x)) {
-			*ptr = currPtr
-			return x, sign
-		}
-	}
+	_ = "STUB: not implemented"
+	return 0, 0
 }
+
+// Sanity check, this error should not happen.
+
+// Avoids buffer misalignment
+
+/* #nosec G115 -- juint32 is masked to 31 bits */
+
+// 1 (>99%)
+/* #nosec G115 -- j cannot be negative */
+
+// 2 (<1%)
+
+// This extra work is only required for the base strip.
+
+// 3
 
 var kn = [128]uint32{
 	0x76ad2212, 0x0, 0x600f1b53, 0x6ce447a6, 0x725b46a2,

@@ -1,8 +1,6 @@
 package polynomial
 
 import (
-	"fmt"
-
 	"github.com/tuneinsight/lattigo/v6/circuits/common/polynomial"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/schemes/bgv"
@@ -16,15 +14,8 @@ type Evaluator struct {
 
 // NewEvaluator instantiates a new PolynomialEvaluator from a [bgv.Evaluator].
 func NewEvaluator(params bgv.Parameters, eval *bgv.Evaluator) *Evaluator {
-
-	return &Evaluator{
-		Parameters: params,
-		Evaluator: polynomial.Evaluator[uint64]{
-			Evaluator:         eval,
-			CoefficientGetter: CoefficientGetter{values: make([]uint64, params.MaxSlots())},
-		},
-		InvariantTensoring: eval.ScaleInvariant,
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // Evaluate evaluates a polynomial on the input Ciphertext in ceil(log2(deg+1)) levels.
@@ -36,40 +27,16 @@ func NewEvaluator(params bgv.Parameters, eval *bgv.Evaluator) *Evaluator {
 // targetScale: the desired output scale. This value shouldn't differ too much from the original ciphertext scale. It can
 // for example be used to correct small deviations in the ciphertext scale and reset it to the default scale.
 func (eval Evaluator) Evaluate(ct *rlwe.Ciphertext, p interface{}, targetScale rlwe.Scale) (opOut *rlwe.Ciphertext, err error) {
-
-	var phe interface{}
-	switch p := p.(type) {
-	case Polynomial:
-		phe = polynomial.Polynomial(p)
-	case PolynomialVector:
-		phe = polynomial.PolynomialVector(p)
-	default:
-		phe = p
-	}
-
-	return eval.Evaluator.Evaluate(ct, phe, targetScale, 1, &simEvaluator{eval.Parameters, eval.InvariantTensoring})
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // EvaluateFromPowerBasis evaluates a polynomial using the provided [polynomial.PowerBasis], holding pre-computed powers of X.
 // This method is the same as Evaluate except that the encrypted input is a PowerBasis.
 // See [Evaluate] for additional information.
 func (eval Evaluator) EvaluateFromPowerBasis(pb polynomial.PowerBasis, p interface{}, targetScale rlwe.Scale) (opOut *rlwe.Ciphertext, err error) {
-
-	var phe interface{}
-	switch p := p.(type) {
-	case Polynomial:
-		phe = polynomial.Polynomial(p)
-	case PolynomialVector:
-		phe = polynomial.PolynomialVector(p)
-	default:
-		phe = p
-	}
-
-	if _, ok := pb.Value[1]; !ok {
-		return nil, fmt.Errorf("cannot EvaluateFromPowerBasis: X^{1} is nil")
-	}
-
-	return eval.Evaluator.Evaluate(pb, phe, targetScale, 1, &simEvaluator{eval.Parameters, eval.InvariantTensoring})
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // CoefficientGetter is a struct that implements the
@@ -82,25 +49,12 @@ type CoefficientGetter struct {
 // of each polynomial of PolynomialVector indexed by its Mapping.
 // See [PolynomialVector] for additional information about the Mapping.
 func (c CoefficientGetter) GetVectorCoefficient(pol polynomial.PolynomialVector, k int) (values []uint64) {
-
-	values = c.values
-
-	for j := range values {
-		values[j] = 0
-	}
-
-	mapping := pol.Mapping
-
-	for i, p := range pol.Value {
-		for _, j := range mapping[i] {
-			values[j] = p.Coeffs[k].Uint64()
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // GetSingleCoefficient should return the k-th coefficient of Polynomial as the type uint64.
 func (c CoefficientGetter) GetSingleCoefficient(pol polynomial.Polynomial, k int) (value uint64) {
-	return pol.Coeffs[k].Uint64()
+	_ = "STUB: not implemented"
+	return 0
 }

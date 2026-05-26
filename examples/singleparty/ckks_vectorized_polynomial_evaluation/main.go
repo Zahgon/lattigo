@@ -2,9 +2,7 @@
 package main
 
 import (
-	"fmt"
 	"math"
-	"math/big"
 
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/polynomial"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
@@ -159,51 +157,22 @@ func main() {
 // GetChebyshevPoly returns the Chebyshev polynomial approximation of f the
 // in the interval [-K, K] for the given degree.
 func GetChebyshevPoly(K float64, degree int, f64 func(x float64) (y float64)) bignum.Polynomial {
-
-	FBig := func(x *big.Float) (y *big.Float) {
-		xF64, _ := x.Float64()
-		return new(big.Float).SetPrec(x.Prec()).SetFloat64(f64(xF64))
-	}
-
-	var prec uint = 128
-
-	interval := bignum.Interval{
-		A:     *bignum.NewFloat(-K, prec),
-		B:     *bignum.NewFloat(K, prec),
-		Nodes: degree,
-	}
-
-	// Returns the polynomial.
-	return bignum.ChebyshevApproximation(FBig, interval)
+	_ = "STUB: not implemented"
+	return *new(bignum.Polynomial)
 }
+
+// Returns the polynomial.
 
 // PrintPrecisionStats decrypts, decodes and prints the precision stats of a ciphertext.
 func PrintPrecisionStats(params ckks.Parameters, ct *rlwe.Ciphertext, want []float64, ecd *ckks.Encoder, dec *rlwe.Decryptor) {
-
-	var err error
+	_ = "STUB: not implemented"
 
 	// Decrypts the vector of plaintext values
-	pt := dec.DecryptNew(ct)
-
-	// Decodes the plaintext
-	have := make([]float64, ct.Slots())
-	if err = ecd.Decode(pt, have); err != nil {
-		panic(err)
-	}
-
-	// Pretty prints some values
-	fmt.Printf("Have: ")
-	for i := 0; i < 4; i++ {
-		fmt.Printf("%20.15f ", have[i])
-	}
-	fmt.Printf("...\n")
-
-	fmt.Printf("Want: ")
-	for i := 0; i < 4; i++ {
-		fmt.Printf("%20.15f ", want[i])
-	}
-	fmt.Printf("...\n")
-
-	// Pretty prints the precision stats
-	fmt.Println(ckks.GetPrecisionStats(params, ecd, dec, have, want, 0, false).String())
+	return
 }
+
+// Decodes the plaintext
+
+// Pretty prints some values
+
+// Pretty prints the precision stats

@@ -13,13 +13,7 @@ import (
 )
 
 // Function to evaluate
-func sign(x float64) float64 {
-	if x >= 0 {
-		return 1
-	}
-
-	return -1
-}
+func sign(x float64) float64 { _ = "STUB: not implemented"; return 0 }
 
 func main() {
 	// RLWE parameters of the Blind Rotation

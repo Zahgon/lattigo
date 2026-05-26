@@ -23,16 +23,6 @@ type SimPowerBasis map[int]*SimOperand
 
 // GenPower populates the target SimPowerBasis with the nth power.
 func (d SimPowerBasis) GenPower(params rlwe.ParameterProvider, n int, eval SimEvaluator) {
-
-	if n < 2 {
-		return
-	}
-
-	a, b := SplitDegree(n)
-
-	d.GenPower(params, a, eval)
-	d.GenPower(params, b, eval)
-
-	d[n] = eval.MulNew(d[a], d[b])
-	eval.Rescale(d[n])
+	_ = "STUB: not implemented"
+	return
 }

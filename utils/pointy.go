@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"unsafe"
-
 	cs "golang.org/x/exp/constraints"
 )
 
@@ -12,11 +10,13 @@ type Number interface {
 
 // Pointy creates a new T variable and returns its pointer.
 func Pointy[T Number](x T) *T {
-	return &x
+	_ = "STUB: not implemented"
+
+	// PointyIntToPointUint64 converts *int to *uint64.
+	return nil
 }
 
-// PointyIntToPointUint64 converts *int to *uint64.
 func PointyIntToPointUint64(x *int) *uint64 {
-	/* #nosec G103 -- behavior and consequences well understood, pointer type cast */
-	return (*uint64)(unsafe.Pointer(uintptr(unsafe.Pointer(x))))
+	_ = "STUB: not implemented"
+	/* #nosec G103 -- behavior and consequences well understood, pointer type cast */ return nil
 }

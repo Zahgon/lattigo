@@ -15,29 +15,12 @@ type SyncPool[T any] struct {
 
 // NewSyncPool creates a new SyncPool.
 // The input function f is the function that is used to create new objects if none is available in the pool.
-func NewSyncPool[T any](f func() T) *SyncPool[T] {
-	pool := &sync.Pool{
-		New: func() any {
-			return f()
-		},
-	}
-	return &SyncPool[T]{pool: pool}
-}
+func NewSyncPool[T any](f func() T) *SyncPool[T] { _ = "STUB: not implemented"; return nil }
 
-func NewSyncPoolUint64(N int) *SyncPool[*[]uint64] {
-	return NewSyncPool(func() *[]uint64 {
-		buff := make([]uint64, N)
-		return &buff
-	})
-
-}
+func NewSyncPoolUint64(N int) *SyncPool[*[]uint64] { _ = "STUB: not implemented"; return nil }
 
 // Get returns a new object of type T from the pool.
-func (spool *SyncPool[T]) Get() T {
-	return spool.pool.Get().(T)
-}
+func (spool *SyncPool[T]) Get() T { _ = "STUB: not implemented"; return *new(T) }
 
 // Put returns the buff to the pool.
-func (spool *SyncPool[T]) Put(buff T) {
-	spool.pool.Put(buff)
-}
+func (spool *SyncPool[T]) Put(buff T) { _ = "STUB: not implemented"; return }

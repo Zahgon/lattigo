@@ -1,12 +1,8 @@
 package rlwe
 
 import (
-	"encoding/json"
-	"fmt"
 	"math"
 	"math/big"
-
-	"github.com/tuneinsight/lattigo/v6/utils/bignum"
 )
 
 const (
@@ -29,275 +25,86 @@ type Scale struct {
 // NewScale instantiates a new floating point [Scale].
 // Accepted types for s are int, int64, uint64, float64, *[big.Int], *[big.Float] and *[Scale].
 // If the input type is not an accepted type, returns an error.
-func NewScale(s interface{}) Scale {
-	v := scaleToBigFloat(s)
-	return Scale{Value: *v}
-}
+func NewScale(s interface{}) Scale { _ = "STUB: not implemented"; return *new(Scale) }
 
 // NewScaleModT instantiates a new integer mod T [Scale].
 // Accepted types for s are int, int64, uint64, float64, *[big.Int], *[big.Float] and *[Scale].
 // If the input type is not an accepted type, returns an error.
-func NewScaleModT(s interface{}, mod uint64) Scale {
-	scale := NewScale(s)
-	if mod != 0 {
-		scale.Mod = big.NewInt(0).SetUint64(mod)
-	}
-	return scale
-}
+func NewScaleModT(s interface{}, mod uint64) Scale { _ = "STUB: not implemented"; return *new(Scale) }
 
 // BigInt returns the scale as a big.Int, truncating the rational part and rounding ot the nearest integer.
 // The rounding assumes that the scale is a positive value.
-func (s Scale) BigInt() (sInt *big.Int) {
-	sInt = new(big.Int)
-	new(big.Float).SetPrec(s.Value.Prec()).Add(&s.Value, new(big.Float).SetFloat64(0.5)).Int(sInt)
-	return
-}
+func (s Scale) BigInt() (sInt *big.Int) { _ = "STUB: not implemented"; return nil }
 
 // Float64 returns the underlying scale as a float64 value.
-func (s Scale) Float64() float64 {
-	f64, _ := s.Value.Float64()
-	return f64
-}
+func (s Scale) Float64() float64 { _ = "STUB: not implemented"; return 0 }
 
-func (s Scale) Log2() float64 {
-	res := new(big.Float).Quo(bignum.Log(&s.Value), bignum.Log2(s.Value.Prec()))
-	f64, _ := res.Float64()
-	return f64
-}
+func (s Scale) Log2() float64 { _ = "STUB: not implemented"; return 0 }
 
 // Uint64 returns the underlying scale as an uint64 value.
-func (s Scale) Uint64() uint64 {
-	u64, _ := s.Value.Uint64()
-	return u64
-}
+func (s Scale) Uint64() uint64 { _ = "STUB: not implemented"; return 0 }
 
 // Mul multiplies the target s with s1, returning the result in
 // a new [Scale] struct. If mod is specified, performs the multiplication
 // modulo mod.
-func (s Scale) Mul(s1 Scale) Scale {
-
-	res := new(big.Float)
-
-	if s.Mod != nil {
-		si, _ := s.Value.Int(nil)
-		s1i, _ := s1.Value.Int(nil)
-		s1i.Mul(si, s1i)
-		s1i.Mod(s1i, s.Mod)
-		res.SetPrec(ScalePrecision)
-		res.SetInt(s1i)
-	} else {
-		res.Mul(&s.Value, &s1.Value)
-	}
-
-	return Scale{Value: *res, Mod: s.Mod}
-}
+func (s Scale) Mul(s1 Scale) Scale { _ = "STUB: not implemented"; return *new(Scale) }
 
 // Div multiplies the target s with s1^-1, returning the result in
 // a new [Scale] struct. If mod is specified, performs the multiplication
 // modulo t with the multiplicative inverse of s1. Otherwise, performs
 // the quotient operation.
-func (s Scale) Div(s1 Scale) Scale {
-
-	res := new(big.Float)
-
-	if s.Mod != nil {
-		s1i, _ := s.Value.Int(nil)
-		s2i, _ := s1.Value.Int(nil)
-
-		s2i.ModInverse(s2i, s.Mod)
-
-		s1i.Mul(s1i, s2i)
-		s1i.Mod(s1i, s.Mod)
-
-		res.SetPrec(ScalePrecision)
-		res.SetInt(s1i)
-	} else {
-		res.Quo(&s.Value, &s1.Value)
-	}
-
-	return Scale{Value: *res, Mod: s.Mod}
-}
+func (s Scale) Div(s1 Scale) Scale { _ = "STUB: not implemented"; return *new(Scale) }
 
 // Cmp compares the target scale with s1.
 // Returns 0 if the scales are equal, 1 if
 // the target scale is greater and -1 if
 // the target scale is smaller.
-func (s Scale) Cmp(s1 Scale) (cmp int) {
-	return s.Value.Cmp(&s1.Value)
-}
+func (s Scale) Cmp(s1 Scale) (cmp int) { _ = "STUB: not implemented"; return 0 }
 
 // Equal returns true if a == b.
-func (s Scale) Equal(s1 Scale) bool {
-	return s.Cmp(s1) == 0
-}
+func (s Scale) Equal(s1 Scale) bool { _ = "STUB: not implemented"; return false }
 
 // InDelta returns true if abs(a-b) <= 2^{-log2Delta}
-func (s Scale) InDelta(s1 Scale, log2Delta float64) bool {
-	return s.Log2Delta(s1) >= log2Delta
-}
+func (s Scale) InDelta(s1 Scale, log2Delta float64) bool { _ = "STUB: not implemented"; return false }
 
 // Log2Delta returns -log2(abs(a-b)/max(a, b))
-func (s Scale) Log2Delta(s1 Scale) float64 {
-	d := new(big.Float).Sub(&s.Value, &s1.Value)
-	d.Abs(d)
-	max := s.Max(s1)
-	d.Quo(d, &max.Value)
-	d.Quo(bignum.Log(d), bignum.Log2(s.Value.Prec()))
-	d.Neg(d)
-	f64, _ := d.Float64()
-	return f64
-}
+func (s Scale) Log2Delta(s1 Scale) float64 { _ = "STUB: not implemented"; return 0 }
 
 // Max returns the a new scale which is the maximum
 // between the target scale and s1.
-func (s Scale) Max(s1 Scale) (max Scale) {
-
-	if s.Cmp(s1) < 0 {
-		return s1
-	}
-
-	return s
-}
+func (s Scale) Max(s1 Scale) (max Scale) { _ = "STUB: not implemented"; return *new(Scale) }
 
 // Min returns the a new scale which is the minimum
 // between the target scale and s1.
-func (s Scale) Min(s1 Scale) (max Scale) {
-
-	if s.Cmp(s1) > 0 {
-		return s1
-	}
-
-	return s
-}
+func (s Scale) Min(s1 Scale) (max Scale) { _ = "STUB: not implemented"; return *new(Scale) }
 
 // BinarySize returns the serialized size of the object in bytes.
 // Each value is encoded with .Text('e', ceil(ScalePrecision / log2(10))).
 func (s Scale) BinarySize() int {
+	_ = "STUB: not implemented"
 	// 21 for JSON formatting plus 2*(6 + ScalePrecisionLog10) for the scales encoding.
-	return 21 + (ScalePrecisionLog10+6)<<1
+	return 0
 }
 
 // MarshalBinary encodes the object into a binary form on a newly allocated slice of bytes.
 func (s Scale) MarshalBinary() (p []byte, err error) {
-	return s.MarshalJSON()
+	_ = "STUB: not implemented"
+	return nil,
+
+		// UnmarshalBinary decodes a slice of bytes generated by
+		// [Scale.MarshalBinary] on the object.
+		nil
 }
 
-// UnmarshalBinary decodes a slice of bytes generated by
-// [Scale.MarshalBinary] on the object.
-func (s Scale) UnmarshalBinary(p []byte) (err error) {
-	return s.UnmarshalJSON(p)
-}
+func (s Scale) UnmarshalBinary(p []byte) (err error) { _ = "STUB: not implemented"; return nil }
 
 // MarshalJSON encodes the object into a binary form on a newly allocated slice of bytes.
-func (s Scale) MarshalJSON() (p []byte, err error) {
-	var mod string
+func (s Scale) MarshalJSON() (p []byte, err error) { _ = "STUB: not implemented"; return nil, nil }
 
-	if s.Mod != nil {
-		mod = new(big.Float).SetPrec(ScalePrecision).SetInt(s.Mod).Text('e', ScalePrecisionLog10)
-	} else {
+func (s *Scale) UnmarshalJSON(p []byte) (err error) { _ = "STUB: not implemented"; return nil }
 
-		var m string
-		for i := 0; i < ScalePrecisionLog10; i++ {
-			m += "0"
-		}
+func scaleToBigFloat(scale interface{}) (s *big.Float) { _ = "STUB: not implemented"; return nil }
 
-		mod = "0." + m + "e+00"
-	}
-
-	aux := &struct {
-		Value string
-		Mod   string
-	}{
-		Value: s.Value.Text('e', ScalePrecisionLog10),
-		Mod:   mod,
-	}
-
-	p, err = json.Marshal(aux)
-
-	return
-}
-
-func (s *Scale) UnmarshalJSON(p []byte) (err error) {
-
-	aux := &struct {
-		Value string
-		Mod   string
-	}{}
-
-	if err = json.Unmarshal(p, aux); err != nil {
-		return
-	}
-
-	s.Value.SetPrec(ScalePrecision)
-	s.Value.SetString(aux.Value)
-
-	mod, bool := new(big.Float).SetString(aux.Mod)
-
-	if mod.Cmp(new(big.Float)) != 0 {
-
-		if s.Mod == nil {
-			s.Mod = new(big.Int)
-		}
-
-		if !bool {
-			return fmt.Errorf("Scale: UnmarshalJSON: s.Mod != exact")
-		}
-
-		mod.Int(s.Mod)
-	}
-
-	return
-}
-
-func scaleToBigFloat(scale interface{}) (s *big.Float) {
-
-	switch scale := scale.(type) {
-	case float64:
-		if scale < 0 || math.IsNaN(scale) || math.IsInf(scale, 0) {
-			panic(fmt.Errorf("scale cannot be negative, NaN or Inf, but is %f", scale))
-		}
-
-		s = new(big.Float).SetPrec(ScalePrecision)
-		s.SetFloat64(scale)
-	case *big.Float:
-		if scale.Cmp(new(big.Float).SetFloat64(0)) < 0 || scale.IsInf() {
-			panic(fmt.Errorf("scale cannot be negative, but is %f", scale))
-		}
-		s = new(big.Float).SetPrec(ScalePrecision)
-		s.Set(scale)
-	case big.Float:
-		if scale.Cmp(new(big.Float).SetFloat64(0)) < 0 || scale.IsInf() {
-			panic(fmt.Errorf("scale cannot be negative, but is %f", &scale))
-		}
-		s = new(big.Float).SetPrec(ScalePrecision)
-		s.Set(&scale)
-	case *big.Int:
-		if scale.Cmp(new(big.Int).SetInt64(0)) < 0 {
-			panic(fmt.Errorf("scale cannot be negative, but is %f", scale))
-		}
-		s = new(big.Float).SetPrec(ScalePrecision)
-		s.SetInt(scale)
-	case big.Int:
-		if scale.Cmp(new(big.Int).SetInt64(0)) < 0 {
-			panic(fmt.Errorf("scale cannot be negative, but is %f", &scale))
-		}
-		s = new(big.Float).SetPrec(ScalePrecision)
-		s.SetInt(&scale)
-	case int:
-		return scaleToBigFloat(new(big.Int).SetInt64(int64(scale)))
-	case int64:
-		return scaleToBigFloat(new(big.Int).SetInt64(scale))
-	case uint64:
-		return scaleToBigFloat(new(big.Int).SetUint64(scale))
-	case Scale:
-		return scaleToBigFloat(scale.Value)
-	default:
-		panic(fmt.Errorf("invalid scale.(type): must be int, int64, uint64, float64, *big.Int, *big.Float or *Scale but is %T", scale))
-	}
-
-	// Although the big.Float has 128 bits of precision, it will be
-	// initialized with mant:big.nat{0x0}, i.e. only one mantissa word.
-	// This forces two mantissa words: mant:big.nat{0x0, 0x0}.
-	s.SetString(s.Text('x', ScalePrecisionLog10))
-	return
-}
+// Although the big.Float has 128 bits of precision, it will be
+// initialized with mant:big.nat{0x0}, i.e. only one mantissa word.
+// This forces two mantissa words: mant:big.nat{0x0, 0x0}.

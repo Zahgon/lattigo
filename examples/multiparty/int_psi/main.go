@@ -26,12 +26,9 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
-	"github.com/tuneinsight/lattigo/v6/multiparty"
-	"github.com/tuneinsight/lattigo/v6/ring"
 	"github.com/tuneinsight/lattigo/v6/schemes/bgv"
 	"github.com/tuneinsight/lattigo/v6/utils/sampling"
 )
@@ -146,291 +143,122 @@ func main() {
 }
 
 func genparties(params bgv.Parameters, N int) []party {
+	_ = "STUB: not implemented"
 
 	// Create the parties and generates a secret key for each party
-	P := make([]party, N)
-	for i := range P {
-		P[i].sk = rlwe.NewKeyGenerator(params).GenSecretKeyNew()
-	}
-
-	return P
+	return nil
 }
 
 func execCKGProtocol(params bgv.Parameters, crs sampling.PRNG, P []party) *rlwe.PublicKey {
-
-	l.Println("> Public Enryption Key Generation")
-
-	// Creates a protocol type for the collective public key generation.
-	// The type is stateless and can be used to generate as many public keys as needed.
-	ckg := multiparty.NewPublicKeyGenProtocol(params)
-
-	// Allocates the memory for the parties' shares in the protocol
-	ckgShares := make([]multiparty.PublicKeyGenShare, len(P))
-	for i := range ckgShares {
-		ckgShares[i] = ckg.AllocateShare()
-	}
-	ckgCombined := ckg.AllocateShare() // Allocate the memory for the combined share
-
-	// sample the common reference polynomial (crp) from the common reference string (crs)
-	crp := ckg.SampleCRP(crs)
-
-	// Generate the parties' shares
-	elapsedCKGParty = runTimedParty(func() {
-		for i, pi := range P {
-			ckg.GenShare(pi.sk, crp, &ckgShares[i])
-		}
-	}, len(P))
-
-	// Aggregate the parties' shares into a collective public key
-	pk := rlwe.NewPublicKey(params)
-	elapsedCKGCloud = runTimed(func() {
-		// Aggregate the parties' shares into a combined share
-		for i := range P {
-			ckg.AggregateShares(ckgShares[i], ckgCombined, &ckgCombined)
-		}
-
-		// Generate the public key from the combined share
-		ckg.GenPublicKey(ckgCombined, crp, pk)
-	})
-
-	l.Printf("\tdone (cloud: %s, party: %s)\n", elapsedCKGCloud, elapsedCKGParty)
-
-	return pk
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// Creates a protocol type for the collective public key generation.
+// The type is stateless and can be used to generate as many public keys as needed.
+
+// Allocates the memory for the parties' shares in the protocol
+
+// Allocate the memory for the combined share
+
+// sample the common reference polynomial (crp) from the common reference string (crs)
+
+// Generate the parties' shares
+
+// Aggregate the parties' shares into a collective public key
+
+// Aggregate the parties' shares into a combined share
+
+// Generate the public key from the combined share
 
 func execRKGProtocol(params bgv.Parameters, crs sampling.PRNG, P []party) *rlwe.RelinearizationKey {
-
-	l.Println("> Relinearization Key Generation")
-
-	// Creates a protocol type for the collective relinearization key generation.
-	// The type is stateless and can be used to generate as many relinearization keys as needed.
-	// The RKG protocol has two rounds.
-	rkg := multiparty.NewRelinearizationKeyGenProtocol(params)
-
-	// Allocates the memory for the parties' shares in the protocol
-	rkgSharesRoundOne := make([]multiparty.RelinearizationKeyGenShare, len(P))
-	rkgSharesRoundTwo := make([]multiparty.RelinearizationKeyGenShare, len(P))
-	for i := range P {
-		P[i].rlkEphemSk, rkgSharesRoundOne[i], rkgSharesRoundTwo[i] = rkg.AllocateShare()
-		// the parties have a private ephemeral secret key in the RKGen protocol
-	}
-	// Allocate the memory for the combined public shares
-	_, rkgCombined1, rkgCombined2 := rkg.AllocateShare()
-
-	// Sample the common reference polynomial (crp) from the common reference string (crs)
-	crp := rkg.SampleCRP(crs)
-
-	// The parties generate their shares for round one
-	elapsedRKGParty = runTimedParty(func() {
-		for i, pi := range P {
-			rkg.GenShareRoundOne(pi.sk, crp, pi.rlkEphemSk, &rkgSharesRoundOne[i])
-		}
-	}, len(P))
-
-	// the helper aggregates the parties' shares for round one
-	elapsedRKGCloud = runTimed(func() {
-		for i := range P {
-			rkg.AggregateShares(rkgSharesRoundOne[i], rkgCombined1, &rkgCombined1)
-		}
-	})
-
-	// The parties generate their shares for round two
-	elapsedRKGParty += runTimedParty(func() {
-		for i, pi := range P {
-			rkg.GenShareRoundTwo(pi.rlkEphemSk, pi.sk, rkgCombined1, &rkgSharesRoundTwo[i])
-		}
-	}, len(P))
-
-	// the helper aggregates the parties' shares for round two and generates the relinearization key
-	rlk := rlwe.NewRelinearizationKey(params)
-	elapsedRKGCloud += runTimed(func() {
-		for i := range P {
-			rkg.AggregateShares(rkgSharesRoundTwo[i], rkgCombined2, &rkgCombined2)
-		}
-		rkg.GenRelinearizationKey(rkgCombined1, rkgCombined2, rlk)
-	})
-
-	l.Printf("\tdone (cloud: %s, party: %s)\n", elapsedRKGCloud, elapsedRKGParty)
-
-	return rlk
+	_ = "STUB: not implemented"
+	return nil
 }
 
+// Creates a protocol type for the collective relinearization key generation.
+// The type is stateless and can be used to generate as many relinearization keys as needed.
+// The RKG protocol has two rounds.
+
+// Allocates the memory for the parties' shares in the protocol
+
+// the parties have a private ephemeral secret key in the RKGen protocol
+
+// Allocate the memory for the combined public shares
+
+// Sample the common reference polynomial (crp) from the common reference string (crs)
+
+// The parties generate their shares for round one
+
+// the helper aggregates the parties' shares for round one
+
+// The parties generate their shares for round two
+
+// the helper aggregates the parties' shares for round two and generates the relinearization key
+
 func genInputs(params bgv.Parameters, P []party) (expRes []uint64) {
+	_ = "STUB: not implemented"
 
 	// generate input vectors for the parties of max size
-	expRes = make([]uint64, params.MaxSlots())
-	for i := range expRes {
-		expRes[i] = 1
-	}
-
-	for i := range P {
-		P[i].input = make([]uint64, params.MaxSlots())
-		for j := range P[i].input {
-			if sampling.RandFloat64(0, 1) > 0.3 || j == 4 {
-				P[i].input[j] = 1
-			}
-			expRes[j] *= P[i].input[j]
-		}
-
-	}
-
-	return
+	return nil
 }
 
 func inputPhase(params bgv.Parameters, P []party, pk *rlwe.PublicKey, encoder *bgv.Encoder) (encInputs []*rlwe.Ciphertext) {
+	_ = "STUB: not implemented"
 
 	// Allocate the memory for the encrypted input vectors
-	encInputs = make([]*rlwe.Ciphertext, len(P))
-	for i := range encInputs {
-		encInputs[i] = bgv.NewCiphertext(params, 1, params.MaxLevel())
-	}
-
-	// Each party encrypts its input vector
-	l.Println("> Input Encryption")
-	encryptor := rlwe.NewEncryptor(params, pk)
-
-	pt := bgv.NewPlaintext(params, params.MaxLevel())
-	elapsedEncryptParty = runTimedParty(func() {
-		for i, pi := range P {
-			err := encoder.Encode(pi.input, pt)
-			check(err)
-			err = encryptor.Encrypt(pt, encInputs[i])
-			check(err)
-		}
-	}, len(P))
-
-	elapsedEncryptCloud = time.Duration(0)
-	l.Printf("\tdone (cloud: %s, party: %s)\n", elapsedEncryptCloud, elapsedEncryptParty)
-
-	return
+	return nil
 }
 
+// Each party encrypts its input vector
+
 func evalPhase(params bgv.Parameters, NGoRoutine int, encInputs []*rlwe.Ciphertext, evk rlwe.EvaluationKeySet) (encRes *rlwe.Ciphertext) {
+	_ = "STUB: not implemented"
 
 	// The eval phase performs the multiplication as a balanced binary tree.
 	// For each level of the tree, it performs the multiplications in parallel using at most NGoRoutine Go routines.
-
-	// Allocate the memory for the encrypted result at each level of the tree
-	encLvls := make([][]*rlwe.Ciphertext, 0)
-	encLvls = append(encLvls, encInputs)
-	for nLvl := len(encInputs) / 2; nLvl > 0; nLvl = nLvl >> 1 {
-		encLvl := make([]*rlwe.Ciphertext, nLvl)
-		for i := range encLvl {
-			encLvl[i] = bgv.NewCiphertext(params, 2, params.MaxLevel())
-		}
-		encLvls = append(encLvls, encLvl)
-	}
-	encRes = encLvls[len(encLvls)-1][0]
-
-	// Creates a evaluator for the multiplication, with the evaluation key
-	evaluator := bgv.NewEvaluator(params, evk, true)
-
-	// Split the task among the Go routines
-	// A multTask is a task that multiplies two ciphertexts and relinearizes the result
-	type multTask struct {
-		wg              *sync.WaitGroup
-		op1             *rlwe.Ciphertext
-		opOut           *rlwe.Ciphertext
-		res             *rlwe.Ciphertext
-		elapsedmultTask time.Duration
-	}
-	tasks := make(chan *multTask)
-	workers := &sync.WaitGroup{}
-	workers.Add(NGoRoutine)
-	//l.Println("> Spawning", NGoRoutine, "evaluator goroutine")
-	for i := 1; i <= NGoRoutine; i++ {
-		go func(i int) {
-			evaluator := evaluator
-			for task := range tasks {
-				task.elapsedmultTask = runTimed(func() {
-					// 1) Multiplication of two input vectors
-					err := evaluator.Mul(task.op1, task.opOut, task.res)
-					check(err)
-					// 2) Relinearization
-					err = evaluator.Relinearize(task.res, task.res)
-					check(err)
-
-				})
-				task.wg.Done()
-			}
-			workers.Done()
-		}(i)
-	}
-
-	// Start the tasks
-	taskList := make([]*multTask, 0)
-	l.Println("> Circuit Evaluation")
-	elapsedEvalCloud = runTimed(func() {
-		for i, lvl := range encLvls[:len(encLvls)-1] {
-			nextLvl := encLvls[i+1]
-			l.Println("\tlevel", i, len(lvl), "->", len(nextLvl))
-			wg := &sync.WaitGroup{}
-			wg.Add(len(nextLvl))
-			for j, nextLvlCt := range nextLvl {
-				task := multTask{wg, lvl[2*j], lvl[2*j+1], nextLvlCt, 0}
-				taskList = append(taskList, &task)
-				tasks <- &task
-			}
-			wg.Wait()
-		}
-	})
-	elapsedEvalCloudCPU = time.Duration(0)
-	for _, t := range taskList {
-		elapsedEvalCloudCPU += t.elapsedmultTask
-	}
-	elapsedEvalParty = time.Duration(0)
-	l.Printf("\tdone (cloud: %s (wall: %s), party: %s)\n",
-		elapsedEvalCloudCPU, elapsedEvalCloud, elapsedEvalParty)
-
-	//l.Println("> Shutting down workers")
-	close(tasks)
-	workers.Wait()
-
-	return
+	return nil
 }
 
+// Allocate the memory for the encrypted result at each level of the tree
+
+// Creates a evaluator for the multiplication, with the evaluation key
+
+// Split the task among the Go routines
+// A multTask is a task that multiplies two ciphertexts and relinearizes the result
+
+//l.Println("> Spawning", NGoRoutine, "evaluator goroutine")
+
+// 1) Multiplication of two input vectors
+
+// 2) Relinearization
+
+// Start the tasks
+
+//l.Println("> Shutting down workers")
+
 func execPCKSProtocol(params bgv.Parameters, tpk *rlwe.PublicKey, encRes *rlwe.Ciphertext, P []party) (encOut *rlwe.Ciphertext) {
+	_ = "STUB: not implemented"
 
 	// Collective key switching from the collective secret key to
 	// the target public key
-	l.Println("> Output Re-Encryption")
-
-	// Creates a protocol type for the collective public key switch.
-	// The type is stateless and can be used to generate as many public key switches as needed.
-	pcks, err := multiparty.NewPublicKeySwitchProtocol(params, ring.DiscreteGaussian{Sigma: 1 << 30, Bound: 6 * (1 << 30)})
-	check(err)
-
-	// Allocates the memory for the parties' shares in the protocol
-	pcksShares := make([]multiparty.PublicKeySwitchShare, len(P))
-	for i := range P {
-		pcksShares[i] = pcks.AllocateShare(params.MaxLevel())
-	}
-	// Allocates the memory for combined share
-	pcksCombined := pcks.AllocateShare(params.MaxLevel())
-
-	// Each party generates its share
-	elapsedPCKSParty = runTimedParty(func() {
-		for i, pi := range P {
-			pcks.GenShare(pi.sk, tpk, encRes, &pcksShares[i])
-		}
-	}, len(P))
-
-	// The helper server aggregates the parties' shares and combutes the output, re-encrpyted, ciphertext
-	encOut = bgv.NewCiphertext(params, 1, params.MaxLevel())
-	elapsedPCKSCloud = runTimed(func() {
-		// Aggregate the parties' shares into a combined share
-		for i := range P {
-			err := pcks.AggregateShares(pcksShares[i], pcksCombined, &pcksCombined)
-			check(err)
-		}
-
-		// Generate the output ciphertext
-		pcks.KeySwitch(encRes, pcksCombined, encOut)
-	})
-	l.Printf("\tdone (cloud: %s, party: %s)\n", elapsedPCKSCloud, elapsedPCKSParty)
-
-	return
+	return nil
 }
+
+// Creates a protocol type for the collective public key switch.
+// The type is stateless and can be used to generate as many public key switches as needed.
+
+// Allocates the memory for the parties' shares in the protocol
+
+// Allocates the memory for combined share
+
+// Each party generates its share
+
+// The helper server aggregates the parties' shares and combutes the output, re-encrpyted, ciphertext
+
+// Aggregate the parties' shares into a combined share
+
+// Generate the output ciphertext
 
 var (
 	elapsedEncryptParty,
@@ -446,20 +274,11 @@ var (
 	elapsedEvalParty time.Duration
 )
 
-func check(err error) {
-	if err != nil {
-		l.Fatal(err)
-	}
-}
+func check(err error) { _ = "STUB: not implemented"; return }
 
-func runTimed(f func()) time.Duration {
-	start := time.Now()
-	f()
-	return time.Since(start)
-}
+func runTimed(f func()) time.Duration { _ = "STUB: not implemented"; return *new(time.Duration) }
 
 func runTimedParty(f func(), N int) time.Duration {
-	start := time.Now()
-	f()
-	return time.Duration(time.Since(start).Nanoseconds() / int64(N))
+	_ = "STUB: not implemented"
+	return *new(time.Duration)
 }

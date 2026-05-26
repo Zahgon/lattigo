@@ -1,10 +1,7 @@
 package rlwe
 
 import (
-	"fmt"
-
 	"github.com/tuneinsight/lattigo/v6/ring"
-	"github.com/tuneinsight/lattigo/v6/utils"
 )
 
 // Evaluator is a struct that holds the necessary elements to execute general homomorphic
@@ -22,83 +19,26 @@ type Evaluator struct {
 
 // NewEvaluator creates a new [Evaluator].
 func NewEvaluator(params ParameterProvider, evk EvaluationKeySet) (eval *Evaluator) {
-	eval = new(Evaluator)
-	p := params.GetRLWEParameters()
-	eval.params = *p
-
-	eval.pool = NewPool(p.RingQP())
-
-	if p.RingP() != nil {
-		eval.BasisExtender = ring.NewBasisExtender(p.RingQ(), p.RingP())
-	}
-
-	eval.Decomposer = ring.NewDecomposer(p.RingQ(), p.RingP())
-
-	eval.EvaluationKeySet = evk
-
-	var AutomorphismIndex map[uint64][]uint64
-
-	if !utils.IsNil(evk) {
-		if galEls := evk.GetGaloisKeysList(); len(galEls) != 0 {
-			AutomorphismIndex = make(map[uint64][]uint64)
-
-			N := p.N()
-			NthRoot := p.RingQ().NthRoot()
-
-			var err error
-			for _, galEl := range galEls {
-				if AutomorphismIndex[galEl], err = ring.AutomorphismNTTIndex(N, NthRoot, galEl); err != nil {
-					// Sanity check, this error should not happen.
-					panic(err)
-				}
-			}
-		}
-	}
-
-	eval.automorphismIndex = AutomorphismIndex
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
-func (eval *Evaluator) GetRLWEParameters() *Parameters {
-	return &eval.params
-}
+// Sanity check, this error should not happen.
+
+func (eval *Evaluator) GetRLWEParameters() *Parameters { _ = "STUB: not implemented"; return nil }
 
 // CheckAndGetGaloisKey returns an error if the [GaloisKey] for the given Galois element is missing or the [EvaluationKey] interface is nil.
 func (eval Evaluator) CheckAndGetGaloisKey(galEl uint64) (evk *GaloisKey, err error) {
-	if eval.EvaluationKeySet != nil {
-		if evk, err = eval.GetGaloisKey(galEl); err != nil {
-			return nil, fmt.Errorf("%w: key for galEl %d = 5^{%d} key is missing", err, galEl, eval.params.SolveDiscreteLogGaloisElement(galEl))
-		}
-	} else {
-		return nil, fmt.Errorf("evaluation key interface is nil")
-	}
-
-	if eval.automorphismIndex == nil {
-		eval.automorphismIndex = map[uint64][]uint64{}
-	}
-
-	if _, ok := eval.automorphismIndex[galEl]; !ok {
-		if eval.automorphismIndex[galEl], err = ring.AutomorphismNTTIndex(eval.params.N(), eval.params.RingQ().NthRoot(), galEl); err != nil {
-			// Sanity check, this error should not happen.
-			panic(err)
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// Sanity check, this error should not happen.
 
 // CheckAndGetRelinearizationKey returns an error if the [RelinearizationKey] is missing or the [EvaluationKey] interface is nil.
 func (eval Evaluator) CheckAndGetRelinearizationKey() (evk *RelinearizationKey, err error) {
-	if eval.EvaluationKeySet != nil {
-		if evk, err = eval.GetRelinearizationKey(); err != nil {
-			return nil, fmt.Errorf("%w: relineariztion key is missing", err)
-		}
-	} else {
-		return nil, fmt.Errorf("evaluation key interface is nil")
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // InitOutputBinaryOp initializes the output [Element] opOut for receiving the result of a binary operation over
@@ -117,46 +57,8 @@ func (eval Evaluator) CheckAndGetRelinearizationKey() (evk *RelinearizationKey, 
 //
 // The method returns max(op0.Degree(), op1.Degree(), opOut.Degree()) and min(op0.Level(), op1.Level(), opOut.Level())
 func (eval Evaluator) InitOutputBinaryOp(op0, op1 *Element[ring.Poly], opInTotalMaxDegree int, opOut *Element[ring.Poly]) (degree, level int, err error) {
-
-	if op0 == nil || op1 == nil || opOut == nil {
-		return 0, 0, fmt.Errorf("op0, op1 and opOut cannot be nil")
-	}
-
-	if op0.MetaData == nil || op1.MetaData == nil || opOut.MetaData == nil {
-		return 0, 0, fmt.Errorf("op0, op1 and opOut MetaData cannot be nil")
-	}
-
-	degree = utils.Max(op0.Degree(), op1.Degree())
-	degree = utils.Max(degree, opOut.Degree())
-	level = utils.Min(op0.Level(), op1.Level())
-	level = utils.Min(level, opOut.Level())
-
-	totDegree := op0.Degree() + op1.Degree()
-
-	if totDegree == 0 {
-		return 0, 0, fmt.Errorf("op0 and op1 cannot be both plaintexts")
-	}
-
-	if totDegree > opInTotalMaxDegree {
-		return 0, 0, fmt.Errorf("op0 and op1 total degree cannot exceed %d but is %d", opInTotalMaxDegree, totDegree)
-	}
-
-	if op0.El().IsNTT != op1.El().IsNTT || op0.El().IsNTT != eval.params.NTTFlag() {
-		return 0, 0, fmt.Errorf("op0.El().IsNTT or op1.El().IsNTT != %t", eval.params.NTTFlag())
-	} else {
-		opOut.El().IsNTT = op0.El().IsNTT
-	}
-
-	if op0.El().IsBatched != op1.El().IsBatched {
-		return 0, 0, fmt.Errorf("op1.El().IsBatched != opOut.El().IsBatched")
-	} else {
-		opOut.El().IsBatched = op0.El().IsBatched
-	}
-
-	opOut.El().LogDimensions.Rows = utils.Max(op0.El().LogDimensions.Rows, op1.El().LogDimensions.Rows)
-	opOut.El().LogDimensions.Cols = utils.Max(op0.El().LogDimensions.Cols, op1.El().LogDimensions.Cols)
-
-	return
+	_ = "STUB: not implemented"
+	return 0, 0, nil
 }
 
 // InitOutputUnaryOp initializes the output [Element] opOut for receiving the result of a unary operation over
@@ -174,62 +76,25 @@ func (eval Evaluator) InitOutputBinaryOp(op0, op1 *Element[ring.Poly], opInTotal
 //
 // The method returns max(op0.Degree(), opOut.Degree()) and min(op0.Level(), opOut.Level()).
 func (eval Evaluator) InitOutputUnaryOp(op0, opOut *Element[ring.Poly]) (degree, level int, err error) {
-
-	if op0 == nil || opOut == nil {
-		return 0, 0, fmt.Errorf("op0 and opOut cannot be nil")
-	}
-
-	if op0.MetaData == nil || opOut.MetaData == nil {
-		return 0, 0, fmt.Errorf("op0 and opOut MetaData cannot be nil")
-	}
-
-	if op0.El().IsNTT != eval.params.NTTFlag() {
-		return 0, 0, fmt.Errorf("op0.IsNTT() != %t", eval.params.NTTFlag())
-	} else {
-		opOut.El().IsNTT = op0.El().IsNTT
-	}
-
-	opOut.El().IsBatched = op0.El().IsBatched
-	opOut.El().LogDimensions = op0.El().LogDimensions
-
-	return utils.Max(op0.Degree(), opOut.Degree()), utils.Min(op0.Level(), opOut.Level()), nil
+	_ = "STUB: not implemented"
+	return 0, 0, nil
 }
 
 // WithKey creates a shallow copy of the receiver [Evaluator] for which the new [EvaluationKey] is evaluationKey
 // and where the temporary buffers are shared. The receiver and the returned evaluators cannot be used concurrently.
 func (eval Evaluator) WithKey(evk EvaluationKeySet) *Evaluator {
-
-	var AutomorphismIndex map[uint64][]uint64
-
-	if galEls := evk.GetGaloisKeysList(); len(galEls) != 0 {
-		AutomorphismIndex = make(map[uint64][]uint64)
-
-		N := eval.params.N()
-		NthRoot := eval.params.RingQ().NthRoot()
-
-		var err error
-		for _, galEl := range galEls {
-			if AutomorphismIndex[galEl], err = ring.AutomorphismNTTIndex(N, NthRoot, galEl); err != nil {
-				// Sanity check, this error should not happen.
-				panic(err)
-			}
-		}
-	}
-
-	return &Evaluator{
-		params:            eval.params,
-		Decomposer:        eval.Decomposer,
-		BasisExtender:     eval.BasisExtender,
-		EvaluationKeySet:  evk,
-		automorphismIndex: AutomorphismIndex,
-		pool:              eval.pool,
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
 
+// Sanity check, this error should not happen.
+
 func (eval Evaluator) AutomorphismIndex(galEl uint64) []uint64 {
-	return eval.automorphismIndex[galEl]
+	_ = "STUB: not implemented"
+	return nil
 }
 
 func (eval Evaluator) ModDownQPtoQNTT(levelQ, levelP int, p1Q, p1P, p2Q ring.Poly) {
-	eval.BasisExtender.ModDownQPtoQNTT(levelQ, levelP, p1Q, p1P, p2Q)
+	_ = "STUB: not implemented"
+	return
 }

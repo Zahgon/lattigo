@@ -2,9 +2,7 @@
 package main
 
 import (
-	"fmt"
 	"math"
-	"math/big"
 
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/polynomial"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
@@ -126,87 +124,44 @@ func main() {
 // GetMinimaxPoly returns the minimax polynomial approximation of f the
 // in the interval [-K, K] for the given degree.
 func GetMinimaxPoly(K float64, degree int, f64 func(x float64) (y float64)) bignum.Polynomial {
-
-	FBig := func(x *big.Float) (y *big.Float) {
-		xF64, _ := x.Float64()
-		return new(big.Float).SetPrec(x.Prec()).SetFloat64(f64(xF64))
-	}
-
-	// Bit-precision of the arbitrary precision arithmetic used by the minimax solver
-	var prec uint = 160
-
-	// Minimax (Remez) approximation of sigmoid
-	r := bignum.NewRemez(bignum.RemezParameters{
-		// Function to Approximate
-		Function: FBig,
-
-		// Polynomial basis of the approximation
-		Basis: bignum.Chebyshev,
-
-		// Approximation in [A, B] of degree Nodes.
-		Intervals: []bignum.Interval{
-			{
-				A:     *bignum.NewFloat(-K, prec),
-				B:     *bignum.NewFloat(K, prec),
-				Nodes: degree,
-			},
-		},
-
-		// Bit-precision of the solver
-		Prec: prec,
-
-		// Scan step for root finding
-		ScanStep: bignum.NewFloat(1/16.0, prec),
-		// Optimizes the scan-step for root finding
-		OptimalScanStep: true,
-	})
-
-	// Max 10 iters, and normalized min/max error of 1e-15
-	fmt.Printf("Minimax Approximation of Degree %d\n", degree)
-	r.Approximate(10, 1e-15)
-	fmt.Println()
-
-	// Shoes the coeffs with 50 decimals of precision
-	fmt.Printf("Minimax Chebyshev Coefficients [%f, %f]\n", -K, K)
-	r.ShowCoeffs(16)
-	fmt.Println()
-
-	// Shows the min and max error with 50 decimals of precision
-	fmt.Println("Minimax Error")
-	r.ShowError(16)
-	fmt.Println()
-
-	// Returns the polynomial.
-	return bignum.NewPolynomial(bignum.Chebyshev, r.Coeffs, [2]float64{-K, K})
+	_ = "STUB: not implemented"
+	return *new(bignum.Polynomial)
 }
+
+// Bit-precision of the arbitrary precision arithmetic used by the minimax solver
+
+// Minimax (Remez) approximation of sigmoid
+
+// Function to Approximate
+
+// Polynomial basis of the approximation
+
+// Approximation in [A, B] of degree Nodes.
+
+// Bit-precision of the solver
+
+// Scan step for root finding
+
+// Optimizes the scan-step for root finding
+
+// Max 10 iters, and normalized min/max error of 1e-15
+
+// Shoes the coeffs with 50 decimals of precision
+
+// Shows the min and max error with 50 decimals of precision
+
+// Returns the polynomial.
 
 // PrintPrecisionStats decrypts, decodes and prints the precision stats of a ciphertext.
 func PrintPrecisionStats(params ckks.Parameters, ct *rlwe.Ciphertext, want []float64, ecd *ckks.Encoder, dec *rlwe.Decryptor) {
-
-	var err error
+	_ = "STUB: not implemented"
 
 	// Decrypts the vector of plaintext values
-	pt := dec.DecryptNew(ct)
-
-	// Decodes the plaintext
-	have := make([]float64, ct.Slots())
-	if err = ecd.Decode(pt, have); err != nil {
-		panic(err)
-	}
-
-	// Pretty prints some values
-	fmt.Printf("Have: ")
-	for i := 0; i < 4; i++ {
-		fmt.Printf("%20.15f ", have[i])
-	}
-	fmt.Printf("...\n")
-
-	fmt.Printf("Want: ")
-	for i := 0; i < 4; i++ {
-		fmt.Printf("%20.15f ", want[i])
-	}
-	fmt.Printf("...\n")
-
-	// Pretty prints the precision stats
-	fmt.Println(ckks.GetPrecisionStats(params, ecd, dec, have, want, 0, false).String())
+	return
 }
+
+// Decodes the plaintext
+
+// Pretty prints some values
+
+// Pretty prints the precision stats

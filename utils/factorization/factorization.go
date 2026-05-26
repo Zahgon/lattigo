@@ -2,174 +2,46 @@
 package factorization
 
 import (
-	"math"
 	"math/big"
-	"sort"
 )
 
-func IsPrime(m *big.Int) bool {
-	if m.Cmp(new(big.Int).SetUint64(0xffffffffffffffff)) == -1 {
-		return m.ProbablyPrime(0)
-	}
-	return m.ProbablyPrime(64)
-}
+func IsPrime(m *big.Int) bool { _ = "STUB: not implemented"; return false }
 
 // GetFactors returns all the prime factors of m.
 // Only the unique primes are returned, not their power.
-func GetFactors(m *big.Int) (factors []*big.Int) {
+func GetFactors(m *big.Int) (factors []*big.Int) { _ = "STUB: not implemented"; return nil }
 
-	mCpy := new(big.Int).Set(m)
+// First, loops through small prime factors
 
-	if IsPrime(mCpy) {
-		return []*big.Int{mCpy}
-	}
+// Second, find the remaining large prime factors
 
-	f := map[*big.Int]bool{}
+// First checks that m isn't prime
 
-	check := new(big.Int)
-	zero := new(big.Int).SetUint64(0)
-	one := new(big.Int).SetUint64(1)
+// Then tries with a quick PollardRho
+// If this fails, calls ECM factorization
 
-	// First, loops through small prime factors
-	for i := range smallPrimes {
-
-		smallPrime := new(big.Int).SetUint64(smallPrimes[i])
-
-		addFactor := false
-		for check.Mod(mCpy, smallPrime).Cmp(zero) == 0 {
-			mCpy.Quo(mCpy, smallPrime)
-			addFactor = true
-		}
-
-		if addFactor {
-			f[smallPrime] = true
-		}
-	}
-
-	// Second, find the remaining large prime factors
-	for mCpy.Cmp(one) != 0 {
-
-		// First checks that m isn't prime
-		if IsPrime(mCpy) {
-			f[mCpy] = true
-			break
-		}
-
-		// Then tries with a quick PollardRho
-		// If this fails, calls ECM factorization
-		var factor *big.Int
-		if factor = GetFactorPollardRho(mCpy); factor.Cmp(one) == 0 || factor.Cmp(mCpy) == 0 {
-			factor = GetFactorECM(mCpy)
-		}
-
-		// Removes all powers of the factor from m
-		for check.Mod(mCpy, factor).Cmp(zero) == 0 {
-			mCpy.Quo(mCpy, factor)
-		}
-
-		f[factor] = true
-	}
-
-	factors = make([]*big.Int, len(f))
-
-	var idx int
-	for factor := range f {
-		factors[idx] = factor
-		idx++
-	}
-
-	sort.Slice(factors, func(i, j int) bool {
-		return factors[i].Cmp(factors[j]) == -1
-	})
-
-	return
-}
+// Removes all powers of the factor from m
 
 // GetFactorPollardRho implements Pollard's Rho algorithm for fast prime factorization,
 // but this function only returns one factor per call
 // This function can fail and return m.
-func GetFactorPollardRho(m *big.Int) (d *big.Int) {
+func GetFactorPollardRho(m *big.Int) (d *big.Int) { _ = "STUB: not implemented"; return nil }
 
-	if IsPrime(m) {
-		return new(big.Int).Set(m)
-	}
+// c is used to change the ring in Pollard's Rho algorithm,
+// Every time the algorithm fails to get a factor, c is increased and a retry starts,
+// because Pollard's Rho algorithm sometimes will miss some small prime factors.
 
-	var x, y *big.Int
+/* #nosec G115 -- i cannot be negative */
 
-	zero := new(big.Int).SetUint64(0)
-	one := new(big.Int).SetUint64(1)
-	diff := new(big.Int)
-
-	// c is used to change the ring in Pollard's Rho algorithm,
-	// Every time the algorithm fails to get a factor, c is increased and a retry starts,
-	// because Pollard's Rho algorithm sometimes will miss some small prime factors.
-	for i := 1; i < 10; i++ {
-
-		x, y, d = new(big.Int).SetUint64(2), new(big.Int).SetUint64(2), new(big.Int).SetUint64(1)
-
-		/* #nosec G115 -- i cannot be negative */
-		c := new(big.Int).SetUint64(uint64(i))
-
-		counter := 0
-
-		for d.Cmp(zero) != 0 && d.Cmp(m) != 0 {
-
-			//Walk, walk and eventually meet \o/
-			x = polynomialPollardsRho(x, c, m)
-			y = polynomialPollardsRho(polynomialPollardsRho(y, c, m), c, m)
-			if d.GCD(nil, nil, diff.Sub(x, y), m); d.Cmp(one) != 0 {
-				return
-			}
-
-			counter++
-		}
-	}
-
-	return new(big.Int).SetUint64(1)
-}
+//Walk, walk and eventually meet \o/
 
 // polynomialPollardsRho calculates y = x^2 + c mod N, and is used in FactorizationPollardsRho
-func polynomialPollardsRho(x, c, N *big.Int) (y *big.Int) {
-
-	y = new(big.Int).Exp(x, new(big.Int).SetUint64(2), N)
-	y.Add(y, c)
-	y.Mod(y, N)
-
-	return
-}
+func polynomialPollardsRho(x, c, N *big.Int) (y *big.Int) { _ = "STUB: not implemented"; return nil }
 
 // GetFactorECM finds a factor of N using ECM factorization.
-func GetFactorECM(N *big.Int) (factor *big.Int) {
+func GetFactorECM(N *big.Int) (factor *big.Int) { _ = "STUB: not implemented"; return nil }
 
-	if IsPrime(N) {
-		return new(big.Int).Set(N)
-	}
-
-	ecm := newECM(N)
-
-	var P Point
-
-	one := new(big.Int).SetUint64(1)
-
-	for {
-
-		ecm.Weierstrass, P = NewRandomWeierstrassCurve(ecm.N)
-
-		bound := 0.0
-		i := uint64(2)
-
-		// !B * P
-		for bound < ecm.B {
-
-			if P, factor = ecm.checkThenMul(i, P); factor.Cmp(one) != 0 {
-				return
-			}
-
-			i++
-			bound++
-		}
-	}
-}
+// !B * P
 
 type ecm struct {
 	Weierstrass
@@ -177,58 +49,16 @@ type ecm struct {
 	B float64
 }
 
-func newECM(N *big.Int) ecm {
-
-	logN := float64(N.BitLen()+1) / 1.4426950408889634
-
-	return ecm{
-		N: N,
-		B: math.Exp(math.Sqrt(2 * logN * math.Log(logN))),
-	}
-}
+func newECM(N *big.Int) ecm { _ = "STUB: not implemented"; return *new(ecm) }
 
 func (ecm *ecm) checkThenAdd(P, Q Point) (S Point, gcd *big.Int) {
-
-	gcd = new(big.Int)
-	one := new(big.Int).SetUint64(1)
-
-	N := ecm.N
-	if P.X.Cmp(Q.X) == 0 && P.Y.Cmp(Q.Y) == 0 {
-		if gcd.GCD(nil, nil, new(big.Int).Add(P.Y, P.Y), N); gcd.Cmp(one) != 0 {
-			return
-		}
-	} else {
-		if gcd.GCD(nil, nil, new(big.Int).Sub(Q.X, P.X), N); gcd.Cmp(one) != 0 {
-			return
-		}
-	}
-
-	return ecm.Weierstrass.Add(P, Q), gcd
+	_ = "STUB: not implemented"
+	return *new(Point), nil
 }
 
 func (ecm *ecm) checkThenMul(k uint64, P Point) (Q Point, gcd *big.Int) {
-
-	Q = Point{new(big.Int).SetUint64(0), new(big.Int).SetUint64(1)}
-
-	one := new(big.Int).SetUint64(1)
-
-	for k > 0 {
-		if k&1 == 1 {
-			if Q, gcd = ecm.checkThenAdd(P, Q); gcd.Cmp(one) != 0 {
-				return
-			}
-		}
-
-		k >>= 1
-
-		if k > 0 {
-			if P, gcd = ecm.checkThenAdd(P, P); gcd.Cmp(one) != 0 {
-				return
-			}
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return *new(Point), nil
 }
 
 var smallPrimes = []uint64{

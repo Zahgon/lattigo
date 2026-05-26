@@ -3,7 +3,6 @@
 package buffer
 
 import (
-	"fmt"
 	"io"
 )
 
@@ -42,94 +41,63 @@ type Buffer struct {
 // NewBuffer creates a new Buffer struct with buff as a backing
 // []byte. The read and write offset are initialized at buff[0].
 // Hence, writing new data will overwrite the content of buff.
-func NewBuffer(buff []byte) *Buffer {
-	b := new(Buffer)
-	b.buf = buff
-	return b
-}
+func NewBuffer(buff []byte) *Buffer { _ = "STUB: not implemented"; return nil }
 
 // NewBufferSize creates a new Buffer with size capacity.
-func NewBufferSize(size int) *Buffer {
-	b := new(Buffer)
-	b.buf = make([]byte, size)
-	return b
-}
+func NewBufferSize(size int) *Buffer { _ = "STUB: not implemented"; return nil }
 
 // Write writes p into b. It returns the number of bytes written
 // and an error if attempting to write passed the initial capacity
 // of the buffer. Note that the case where p shares the same backing
 // memory as b is optimized.
-func (b *Buffer) Write(p []byte) (n int, err error) {
-	if len(p)+b.n > cap(b.buf) {
-		return 0, fmt.Errorf("buffer too small")
-	}
-	inc := copy(b.buf[b.n:], p) // This is optimized if &b.buf[b.n:][0] == &p[0]
-	b.n += inc
-	return inc, nil
-}
+func (b *Buffer) Write(p []byte) (n int, err error) { _ = "STUB: not implemented"; return 0, nil }
+
+// This is optimized if &b.buf[b.n:][0] == &p[0]
 
 // Flush doesn't do anything on this slice-based buffer.
 func (b *Buffer) Flush() (err error) {
+	_ = "STUB: not implemented"
+
+	// AvailableBuffer returns an empty buffer with b.Available() capacity, to be
+	// directly appended to and passed to a Write call. The buffer is only valid
+	// until the next write operation on b.
 	return nil
 }
 
-// AvailableBuffer returns an empty buffer with b.Available() capacity, to be
-// directly appended to and passed to a Write call. The buffer is only valid
-// until the next write operation on b.
-func (b *Buffer) AvailableBuffer() []byte {
-	return b.buf[b.n:][:0]
-}
+func (b *Buffer) AvailableBuffer() []byte { _ = "STUB: not implemented"; return nil }
 
 // Available returns the number of bytes available for writes on the buffer.
-func (b *Buffer) Available() int {
-	return len(b.buf) - b.n
-}
+func (b *Buffer) Available() int { _ = "STUB: not implemented"; return 0 }
 
 // Bytes returns the backing slice.
 func (b *Buffer) Bytes() []byte {
-	return b.buf
+	_ = "STUB: not implemented"
+
+	// Reset re-initializes the read and write offsets of b.
+	return nil
 }
 
-// Reset re-initializes the read and write offsets of b.
 func (b *Buffer) Reset() {
-	b.n = 0
-	b.off = 0
+	_ = "STUB: not implemented"
+
+	// Read reads len(p) bytes from the read offset of b into p. It returns the
+	// number n of bytes read and an error if n < len(p).
+	return
 }
 
-// Read reads len(p) bytes from the read offset of b into p. It returns the
-// number n of bytes read and an error if n < len(p).
-func (b *Buffer) Read(p []byte) (n int, err error) {
-	n = copy(p, b.buf[b.off:])
-	b.off += n
-	if n < len(p) {
-		return n, io.EOF
-	}
-	return n, nil
-}
+func (b *Buffer) Read(p []byte) (n int, err error) { _ = "STUB: not implemented"; return 0, nil }
 
 // Size returns the size of the buffer available for read.
-func (b *Buffer) Size() int {
-	return len(b.buf) - b.off
-}
+func (b *Buffer) Size() int { _ = "STUB: not implemented"; return 0 }
 
 // Peek returns the next n bytes without advancing the read offset, directly
 // as a reslice of the internal buffer. It returns an error if the number of
 // returned bytes is smaller than n.
-func (b *Buffer) Peek(n int) ([]byte, error) {
-	if b.off+n > len(b.buf) {
-		return b.buf[b.off:], io.EOF
-	}
-	return b.buf[b.off : b.off+n], nil
-}
+func (b *Buffer) Peek(n int) ([]byte, error) { _ = "STUB: not implemented"; return nil, nil }
 
 // Discard skips the next n bytes, returning the number of bytes discarded. If
 // Discard skips fewer than n bytes, it also returns an error.
 func (b *Buffer) Discard(n int) (discarded int, err error) {
-	remain := len(b.buf) - b.off
-	if n > remain {
-		b.off = len(b.buf)
-		return remain, io.EOF
-	}
-	b.off += n
-	return n, nil
+	_ = "STUB: not implemented"
+	return 0, nil
 }

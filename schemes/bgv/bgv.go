@@ -17,11 +17,8 @@ import (
 // plaintext dimensions (if applicable) or encoding domain, before encoding values
 // on the created plaintext.
 func NewPlaintext(params Parameters, level int) (pt *rlwe.Plaintext) {
-	pt = rlwe.NewPlaintext(params, level)
-	pt.IsBatched = true
-	pt.Scale = params.DefaultScale()
-	pt.LogDimensions = params.LogMaxDimensions()
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // NewCiphertext allocates a new [rlwe.Ciphertext].
@@ -33,11 +30,8 @@ func NewPlaintext(params Parameters, level int) (pt *rlwe.Plaintext) {
 //
 // output: a newly allocated [rlwe.Ciphertext] of the specified degree and level.
 func NewCiphertext(params Parameters, degree, level int) (ct *rlwe.Ciphertext) {
-	ct = rlwe.NewCiphertext(params, degree, level)
-	ct.IsBatched = true
-	ct.Scale = params.DefaultScale()
-	ct.LogDimensions = params.LogMaxDimensions()
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // NewEncryptor instantiates a new [rlwe.Encryptor].
@@ -48,7 +42,8 @@ func NewCiphertext(params Parameters, degree, level int) (ct *rlwe.Ciphertext) {
 //
 // output: an [rlwe.Encryptor] instantiated with the provided key.
 func NewEncryptor(params Parameters, key rlwe.EncryptionKey) *rlwe.Encryptor {
-	return rlwe.NewEncryptor(params, key)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // NewDecryptor instantiates a new [rlwe.Decryptor].
@@ -59,7 +54,8 @@ func NewEncryptor(params Parameters, key rlwe.EncryptionKey) *rlwe.Encryptor {
 //
 // output: an [rlwe.Decryptor] instantiated with the provided key.
 func NewDecryptor(params Parameters, key *rlwe.SecretKey) *rlwe.Decryptor {
-	return rlwe.NewDecryptor(params, key)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // NewKeyGenerator instantiates a new [rlwe.KeyGenerator].
@@ -68,6 +64,4 @@ func NewDecryptor(params Parameters, key *rlwe.SecretKey) *rlwe.Decryptor {
 //   - params: an [rlwe.ParameterProvider] interface
 //
 // output: an [rlwe.KeyGenerator].
-func NewKeyGenerator(params Parameters) *rlwe.KeyGenerator {
-	return rlwe.NewKeyGenerator(params)
-}
+func NewKeyGenerator(params Parameters) *rlwe.KeyGenerator { _ = "STUB: not implemented"; return nil }

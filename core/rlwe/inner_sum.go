@@ -1,14 +1,5 @@
 package rlwe
 
-import (
-	"fmt"
-	"math/big"
-
-	"github.com/tuneinsight/lattigo/v6/ring"
-	"github.com/tuneinsight/lattigo/v6/ring/ringqp"
-	"github.com/tuneinsight/lattigo/v6/utils"
-)
-
 // Trace maps X -> sum((-1)^i * X^{i*n+1}) for n <= i < N
 // Monomial X^k vanishes if k is not divisible by (N/n), otherwise it is multiplied by (N/n).
 // Ciphertext is pre-multiplied by (N/n)^-1 to remove the (N/n) factor.
@@ -34,110 +25,21 @@ import (
 //
 // The method will return an error if the input and output ciphertexts degree is not one.
 func (eval Evaluator) Trace(ctIn *Ciphertext, logN int, opOut *Ciphertext) (err error) {
-
-	if ctIn.Degree() != 1 || opOut.Degree() != 1 {
-		return fmt.Errorf("ctIn.Degree() != 1 or opOut.Degree() != 1")
-	}
-
-	params := eval.GetRLWEParameters()
-
-	level := utils.Min(ctIn.Level(), opOut.Level())
-
-	opOut.Resize(opOut.Degree(), level)
-
-	*opOut.MetaData = *ctIn.MetaData
-
-	gap := 1 << (params.LogN() - logN - 1)
-
-	if logN == 0 {
-		gap <<= 1
-	}
-
-	if gap > 1 {
-
-		ringQ := params.RingQ().AtLevel(level)
-
-		if ringQ.Type() == ring.ConjugateInvariant {
-			gap >>= 1 // We skip the last step that applies phi(5^{-1})
-		}
-
-		/* #nosec G115 -- gap cannot be negative */
-		NInv := new(big.Int).SetUint64(uint64(gap))
-		NInv.ModInverse(NInv, ringQ.ModulusAtLevel[level])
-
-		// pre-multiplication by (N/n)^-1
-		ringQ.MulScalarBigint(ctIn.Value[0], NInv, opOut.Value[0])
-		ringQ.MulScalarBigint(ctIn.Value[1], NInv, opOut.Value[1])
-
-		if !ctIn.IsNTT {
-			ringQ.NTT(opOut.Value[0], opOut.Value[0])
-			ringQ.NTT(opOut.Value[1], opOut.Value[1])
-			opOut.IsNTT = true
-		}
-
-		buff := eval.pool.GetBuffCt(1, level)
-		defer eval.pool.RecycleBuffCt(buff)
-
-		buff.IsNTT = true
-
-		for i := logN; i < params.LogN()-1; i++ {
-
-			if err = eval.Automorphism(opOut, params.GaloisElement(1<<i), buff); err != nil {
-				return err
-			}
-
-			ringQ.Add(opOut.Value[0], buff.Value[0], opOut.Value[0])
-			ringQ.Add(opOut.Value[1], buff.Value[1], opOut.Value[1])
-		}
-
-		if logN == 0 && ringQ.Type() == ring.Standard {
-
-			if err = eval.Automorphism(opOut, ringQ.NthRoot()-1, buff); err != nil {
-				return err
-			}
-
-			ringQ.Add(opOut.Value[0], buff.Value[0], opOut.Value[0])
-			ringQ.Add(opOut.Value[1], buff.Value[1], opOut.Value[1])
-		}
-
-		if !ctIn.IsNTT {
-			ringQ.INTT(opOut.Value[0], opOut.Value[0])
-			ringQ.INTT(opOut.Value[1], opOut.Value[1])
-			opOut.IsNTT = false
-		}
-
-	} else {
-		if ctIn != opOut {
-			opOut.Copy(ctIn)
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// We skip the last step that applies phi(5^{-1})
+
+/* #nosec G115 -- gap cannot be negative */
+
+// pre-multiplication by (N/n)^-1
 
 // GaloisElementsForTrace returns the list of Galois elements required for the for the `Trace` operation.
 // Trace maps X -> sum((-1)^i * X^{i*n+1}) for 2^{LogN} <= i < N.
 func GaloisElementsForTrace(params ParameterProvider, logN int) (galEls []uint64) {
-
-	p := params.GetRLWEParameters()
-
-	galEls = []uint64{}
-	for i, j := logN, 0; i < p.LogN()-1; i, j = i+1, j+1 {
-		galEls = append(galEls, p.GaloisElement(1<<i))
-	}
-
-	if logN == 0 {
-		switch p.RingType() {
-		case ring.Standard:
-			galEls = append(galEls, p.GaloisElementOrderTwoOrthogonalSubgroup())
-		case ring.ConjugateInvariant:
-			panic("cannot GaloisElementsForTrace: Galois element GaloisGen^-1 is undefined in ConjugateInvariant Ring")
-		default:
-			panic("cannot GaloisElementsForTrace: invalid ring type")
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // PartialTracesSum applies a set of automorphisms on the input ciphertext and sum the results.
@@ -145,151 +47,38 @@ func GaloisElementsForTrace(params ParameterProvider, logN int) (galEls []uint64
 // i.e. opOut = \sum_{i = 0}^{n-1} phi(i*offset, ctIn).
 // At the scheme level, this function is used to perform inner sums or efficiently replicate slots.
 func (eval Evaluator) PartialTracesSum(ctIn *Ciphertext, offset, n int, opOut *Ciphertext) (err error) {
-	if n == 0 || offset == 0 {
-		return fmt.Errorf("partialtrace: invalid parameter (n = 0 or batchSize = 0)")
-	}
-
-	params := eval.GetRLWEParameters()
-
-	levelQ := ctIn.Level()
-	levelP := params.PCount() - 1
-
-	ringQP := params.RingQP().AtLevel(ctIn.Level(), levelP)
-	poolQP := eval.pool.AtLevel(ctIn.Level(), levelP)
-
-	ringQ := ringQP.RingQ
-
-	opOut.Resize(opOut.Degree(), levelQ)
-	*opOut.MetaData = *ctIn.MetaData
-
-	ctInNTT := eval.pool.GetBuffCt(1, levelQ)
-	defer eval.pool.RecycleBuffCt(ctInNTT)
-
-	ctInNTT.MetaData = &MetaData{}
-	ctInNTT.IsNTT = true
-
-	if !ctIn.IsNTT {
-		ringQ.NTT(ctIn.Value[0], ctInNTT.Value[0])
-		ringQ.NTT(ctIn.Value[1], ctInNTT.Value[1])
-	} else {
-		ctInNTT.Value[0].CopyLvl(levelQ, ctIn.Value[0])
-		ctInNTT.Value[1].CopyLvl(levelQ, ctIn.Value[1])
-	}
-
-	if n == 1 {
-		if ctIn != opOut {
-			opOut.Value[0].CopyLvl(levelQ, ctIn.Value[0])
-			opOut.Value[1].CopyLvl(levelQ, ctIn.Value[1])
-		}
-	} else {
-
-		buffQP1 := poolQP.GetBuffPolyQP()
-		defer poolQP.RecycleBuffPolyQP(buffQP1)
-		buffQP2 := poolQP.GetBuffPolyQP()
-		defer poolQP.RecycleBuffPolyQP(buffQP2)
-
-		// Accumulator mod QP (i.e. opOut Mod QP)
-		accQP := &Element[ringqp.Poly]{Value: []ringqp.Poly{*buffQP1, *buffQP2}}
-		accQP.MetaData = ctInNTT.MetaData
-
-		// Buffer mod QP (i.e. to store the result of lazy gadget products)
-		buffQP3 := poolQP.GetBuffPolyQP()
-		defer poolQP.RecycleBuffPolyQP(buffQP3)
-		buffQP4 := poolQP.GetBuffPolyQP()
-		defer poolQP.RecycleBuffPolyQP(buffQP4)
-		cQP := &Element[ringqp.Poly]{Value: []ringqp.Poly{*buffQP3, *buffQP4}}
-		cQP.MetaData = ctInNTT.MetaData
-
-		// Buffer mod Q (i.e. to store the result of gadget products)
-		cQ, err := NewCiphertextAtLevelFromPoly(levelQ, []ring.Poly{cQP.Value[0].Q, cQP.Value[1].Q})
-
-		// Sanity check, this error should not happen unless the
-		// evaluator's buffer has been improperly tempered with.
-		if err != nil {
-			panic(err)
-		}
-
-		cQ.MetaData = ctInNTT.MetaData
-
-		buffDecompQP := poolQP.GetBuffDecompQP(eval.params, levelQ, levelP)
-		defer eval.pool.RecycleBuffDecompQP(buffDecompQP)
-
-		state := false
-		copy := true
-		// Binary reading of the input n
-		for i, j := 0, n; j > 0; i, j = i+1, j>>1 {
-
-			// Starts by decomposing the input ciphertext
-			eval.DecomposeNTT(levelQ, levelP, levelP+1, ctInNTT.Value[1], true, buffDecompQP)
-
-			// If the binary reading scans a 1 (j is odd)
-			if j&1 == 1 {
-
-				k := n - (n & ((2 << i) - 1))
-				k *= offset
-
-				// If the rotation is not zero
-				if k != 0 {
-
-					rot := params.GaloisElement(k)
-
-					// opOutQP = opOutQP + Rotate(ctInNTT, k)
-					if copy {
-						if err = eval.AutomorphismHoistedLazy(levelQ, ctInNTT, buffDecompQP, rot, accQP); err != nil {
-							return err
-						}
-						copy = false
-					} else {
-						if err = eval.AutomorphismHoistedLazy(levelQ, ctInNTT, buffDecompQP, rot, cQP); err != nil {
-							return err
-						}
-						ringQP.Add(accQP.Value[0], cQP.Value[0], accQP.Value[0])
-						ringQP.Add(accQP.Value[1], cQP.Value[1], accQP.Value[1])
-					}
-
-					// j is even
-				} else {
-
-					state = true
-
-					// if n is not a power of two, then at least one j was odd, and thus the buffer opOutQP is not empty
-					if n&(n-1) != 0 {
-
-						// opOut = opOutQP/P + ctInNTT
-						eval.BasisExtender.ModDownQPtoQNTT(levelQ, levelP, accQP.Value[0].Q, accQP.Value[0].P, opOut.Value[0]) // Division by P
-						eval.BasisExtender.ModDownQPtoQNTT(levelQ, levelP, accQP.Value[1].Q, accQP.Value[1].P, opOut.Value[1]) // Division by P
-
-						ringQ.Add(opOut.Value[0], ctInNTT.Value[0], opOut.Value[0])
-						ringQ.Add(opOut.Value[1], ctInNTT.Value[1], opOut.Value[1])
-
-					} else {
-						opOut.Value[0].CopyLvl(levelQ, ctInNTT.Value[0])
-						opOut.Value[1].CopyLvl(levelQ, ctInNTT.Value[1])
-					}
-				}
-			}
-
-			if !state {
-
-				rot := params.GaloisElement((1 << i) * offset)
-
-				// ctInNTT = ctInNTT + Rotate(ctInNTT, 2^i)
-				if err = eval.AutomorphismHoisted(levelQ, ctInNTT, buffDecompQP, rot, cQ); err != nil {
-					return err
-				}
-				ringQ.Add(ctInNTT.Value[0], cQ.Value[0], ctInNTT.Value[0])
-				ringQ.Add(ctInNTT.Value[1], cQ.Value[1], ctInNTT.Value[1])
-			}
-		}
-	}
-
-	if !ctIn.IsNTT {
-		ringQ.INTT(opOut.Value[0], opOut.Value[0])
-		ringQ.INTT(opOut.Value[1], opOut.Value[1])
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// Accumulator mod QP (i.e. opOut Mod QP)
+
+// Buffer mod QP (i.e. to store the result of lazy gadget products)
+
+// Buffer mod Q (i.e. to store the result of gadget products)
+
+// Sanity check, this error should not happen unless the
+// evaluator's buffer has been improperly tempered with.
+
+// Binary reading of the input n
+
+// Starts by decomposing the input ciphertext
+
+// If the binary reading scans a 1 (j is odd)
+
+// If the rotation is not zero
+
+// opOutQP = opOutQP + Rotate(ctInNTT, k)
+
+// j is even
+
+// if n is not a power of two, then at least one j was odd, and thus the buffer opOutQP is not empty
+
+// opOut = opOutQP/P + ctInNTT
+// Division by P
+// Division by P
+
+// ctInNTT = ctInNTT + Rotate(ctInNTT, 2^i)
 
 // InnerFunction applies an user defined function on the [Ciphertext] with a tree-like combination requiring log2(n) + HW(n) rotations.
 //
@@ -315,154 +104,39 @@ func (eval Evaluator) PartialTracesSum(ctIn *Ciphertext, offset, n int, opOut *C
 //     =
 //     [{f(f(a,c),f(e,g)), f(f(b, d), f(f, h))}, {x, x}, {x, x}, {x, x}, {f(f(a,c),f(e,g)), f(f(b, d), f(f, h))}, {x, x}, {x, x}, {x, x}]
 func (eval Evaluator) InnerFunction(ctIn *Ciphertext, batchSize, n int, f func(a, b, c *Ciphertext) (err error), opOut *Ciphertext) (err error) {
-
-	params := eval.GetRLWEParameters()
-
-	levelQ := utils.Min(ctIn.Level(), opOut.Level())
-
-	ringQ := params.RingQ().AtLevel(levelQ)
-
-	opOut.Resize(opOut.Degree(), levelQ)
-	*opOut.MetaData = *ctIn.MetaData
-
-	ctInNTT := NewCiphertext(params, 1, levelQ)
-
-	*ctInNTT.MetaData = *ctIn.MetaData
-	ctInNTT.IsNTT = true
-
-	if !ctIn.IsNTT {
-		ringQ.NTT(ctIn.Value[0], ctInNTT.Value[0])
-		ringQ.NTT(ctIn.Value[1], ctInNTT.Value[1])
-	} else {
-		ctInNTT.Copy(ctIn)
-	}
-
-	if n == 1 {
-		opOut.Copy(ctIn)
-	} else {
-
-		// Accumulator mod Q
-		accQ := eval.pool.GetBuffCt(1, levelQ)
-		defer eval.pool.RecycleBuffCt(accQ)
-		*accQ.MetaData = *ctInNTT.MetaData
-
-		// Sanity check, this error should not happen unless the
-		// evaluator's buffer has been improperly tempered with.
-		if err != nil {
-			panic(err)
-		}
-
-		// Buffer mod Q
-		cQ := eval.pool.GetBuffCt(1, levelQ)
-		defer eval.pool.RecycleBuffCt(cQ)
-		*cQ.MetaData = *ctInNTT.MetaData
-
-		// Sanity check, this error should not happen unless the
-		// evaluator's buffer has been improperly tempered with.
-		if err != nil {
-			panic(err)
-		}
-
-		state := false
-		copy := true
-		// Binary reading of the input n
-		for i, j := 0, n; j > 0; i, j = i+1, j>>1 {
-
-			// If the binary reading scans a 1 (j is odd)
-			if j&1 == 1 {
-
-				k := n - (n & ((2 << i) - 1))
-				k *= batchSize
-
-				// If the rotation is not zero
-				if k != 0 {
-
-					rot := params.GaloisElement(k)
-
-					// opOutQ = f(opOutQ, Rotate(ctInNTT, k), opOutQ)
-					if copy {
-						if err = eval.Automorphism(ctInNTT, rot, accQ); err != nil {
-							return err
-						}
-						copy = false
-					} else {
-						if err = eval.Automorphism(ctInNTT, rot, cQ); err != nil {
-							return err
-						}
-
-						if err = f(accQ, cQ, accQ); err != nil {
-							return err
-						}
-					}
-
-					// j is even
-				} else {
-
-					state = true
-
-					// if n is not a power of two, then at least one j was odd, and thus the buffer opOutQ is not empty
-					if n&(n-1) != 0 {
-
-						opOut.Copy(accQ)
-
-						if err = f(opOut, ctInNTT, opOut); err != nil {
-							return err
-						}
-
-					} else {
-						opOut.Copy(ctInNTT)
-					}
-				}
-			}
-
-			if !state {
-
-				// ctInNTT = f(ctInNTT, Rotate(ctInNTT, 2^i), ctInNTT)
-				if err = eval.Automorphism(ctInNTT, params.GaloisElement((1<<i)*batchSize), cQ); err != nil {
-					return err
-				}
-
-				if err = f(ctInNTT, cQ, ctInNTT); err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	if !ctIn.IsNTT {
-		ringQ.INTT(opOut.Value[0], opOut.Value[0])
-		ringQ.INTT(opOut.Value[1], opOut.Value[1])
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// Accumulator mod Q
+
+// Sanity check, this error should not happen unless the
+// evaluator's buffer has been improperly tempered with.
+
+// Buffer mod Q
+
+// Sanity check, this error should not happen unless the
+// evaluator's buffer has been improperly tempered with.
+
+// Binary reading of the input n
+
+// If the binary reading scans a 1 (j is odd)
+
+// If the rotation is not zero
+
+// opOutQ = f(opOutQ, Rotate(ctInNTT, k), opOutQ)
+
+// j is even
+
+// if n is not a power of two, then at least one j was odd, and thus the buffer opOutQ is not empty
+
+// ctInNTT = f(ctInNTT, Rotate(ctInNTT, 2^i), ctInNTT)
 
 // GaloisElementsForInnerSum returns the list of Galois elements necessary to apply the method
 // [Evaluator.InnerSum] operation with parameters batch and n.
 func GaloisElementsForInnerSum(params ParameterProvider, batch, n int) (galEls []uint64) {
-
-	rotIndex := make(map[int]bool)
-
-	var k int
-	for i := 1; i < n; i <<= 1 {
-
-		k = i
-		k *= batch
-		rotIndex[k] = true
-
-		k = n - (n & ((i << 1) - 1))
-		k *= batch
-		rotIndex[k] = true
-	}
-
-	rotations := make([]int, len(rotIndex))
-	var i int
-	for j := range rotIndex {
-		rotations[i] = j
-		i++
-	}
-
-	return params.GetRLWEParameters().GaloisElements(rotations)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // Replicate applies an optimized replication on the [Ciphertext] (log2(n) + HW(n) rotations with double hoisting).
@@ -473,11 +147,13 @@ func GaloisElementsForInnerSum(params ParameterProvider, batch, n int) (galEls [
 // two consecutive sub-vectors to replicate.
 // This method is faster than Replicate when the number of rotations is large and it uses log2(n) + HW(n) instead of n.
 func (eval Evaluator) Replicate(ctIn *Ciphertext, batchSize, n int, opOut *Ciphertext) (err error) {
-	return eval.PartialTracesSum(ctIn, -batchSize, n, opOut)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // GaloisElementsForReplicate returns the list of Galois elements necessary to perform the
 // [Evaluator.Replicate] operation with parameters batch and n.
 func GaloisElementsForReplicate(params ParameterProvider, batch, n int) (galEls []uint64) {
-	return GaloisElementsForInnerSum(params, -batch, n)
+	_ = "STUB: not implemented"
+	return nil
 }

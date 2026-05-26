@@ -60,92 +60,18 @@ var crp map[uint64]multiparty.GaloisKeyGenCRP
 // a queue of share-generation tasks which is attributed to them by a protocol orchestrator
 // (simulated in this example).
 func (p *party) Run(wg *sync.WaitGroup, params rlwe.Parameters, N int, P []*party, C *cloud) {
-
-	var nShares, nTasks int
-	var start time.Time
-	var cpuTime time.Duration
-	var byteSent int
-	for task := range p.genTaskQueue {
-
-		start = time.Now()
-		var sk *rlwe.SecretKey
-		t := len(task.group)
-		if t == N {
-			sk = p.sk
-		} else {
-			activePk := make([]multiparty.ShamirPublicPoint, 0)
-			for _, pi := range task.group {
-				activePk = append(activePk, pi.shamirPk)
-			}
-			sk = rlwe.NewSecretKey(params)
-			if err := p.GenAdditiveShare(activePk, p.shamirPk, p.tsk, sk); err != nil {
-				panic(err)
-			}
-		}
-
-		for _, galEl := range task.galoisEls {
-			rtgShare := p.AllocateShare()
-
-			if err := p.GenShare(sk, galEl, crp[galEl], &rtgShare); err != nil {
-				panic(err)
-			}
-
-			C.aggTaskQueue <- genTaskResult{galEl: galEl, rtgShare: rtgShare}
-			nShares++
-			byteSent += len(rtgShare.Value) * len(rtgShare.Value[0]) * rtgShare.Value[0][0].BinarySize()
-		}
-		nTasks++
-		cpuTime += time.Since(start)
-	}
-	wg.Done()
-	fmt.Printf("\tParty %d finished generating %d shares of %d tasks in %s, sent %s\n", p.i, nShares, nTasks, cpuTime, formatByteSize(byteSent))
+	_ = "STUB: not implemented"
+	return
 }
 
-func (p *party) String() string {
-	return fmt.Sprintf("Party#%d", p.i)
-}
+func (p *party) String() string { _ = "STUB: not implemented"; return "" }
 
 // Run simulate the behavior of the cloud during the key generation protocol.
 // The cloud process aggregation requests and generates the GaloisKeys keys when
 // all the parties' shares have been aggregated.
 func (c *cloud) Run(galEls []uint64, params rlwe.Parameters, t int) {
-
-	shares := make(map[uint64]*struct {
-		share  multiparty.GaloisKeyGenShare
-		needed int
-	}, len(galEls))
-	for _, galEl := range galEls {
-		shares[galEl] = &struct {
-			share  multiparty.GaloisKeyGenShare
-			needed int
-		}{c.AllocateShare(), t}
-		shares[galEl].share.GaloisElement = galEl
-	}
-
-	var i int
-	var cpuTime time.Duration
-	var byteRecv int
-	for task := range c.aggTaskQueue {
-		start := time.Now()
-		acc := shares[task.galEl]
-		if err := c.GaloisKeyGenProtocol.AggregateShares(acc.share, task.rtgShare, &acc.share); err != nil {
-			panic(err)
-		}
-		acc.needed--
-		if acc.needed == 0 {
-			gk := rlwe.NewGaloisKey(params)
-			if err := c.GenGaloisKey(acc.share, crp[task.galEl], gk); err != nil {
-				panic(err)
-			}
-			c.finDone <- *gk
-		}
-		i++
-		cpuTime += time.Since(start)
-		byteRecv += len(acc.share.Value) * len(acc.share.Value[0]) * acc.share.Value[0][0].BinarySize()
-	}
-	close(c.finDone)
-	fmt.Printf("\tCloud finished aggregating %d shares in %s, received %s\n", i, cpuTime, formatByteSize(byteRecv))
-
+	_ = "STUB: not implemented"
+	return
 }
 
 var flagN = flag.Int("N", 3, "the number of parties")
@@ -351,55 +277,8 @@ type genTaskResult struct {
 	rtgShare multiparty.GaloisKeyGenShare
 }
 
-func getTasks(galEls []uint64, groups [][]*party) []genTask {
-	tasks := make([]genTask, len(groups))
-	for i := range tasks {
-		tasks[i].group = groups[i]
-	}
-	for i, galEl := range galEls {
-		tasks[i%len(groups)].galoisEls = append(tasks[i%len(groups)].galoisEls, galEl)
-	}
-	return tasks
-}
+func getTasks(galEls []uint64, groups [][]*party) []genTask { _ = "STUB: not implemented"; return nil }
 
-func getSubGroups(P []*party, t, k int) [][]*party {
-	if t == len(P) {
-		return [][]*party{P}
-	}
-	if t > len(P) {
-		panic("t > len(P)")
-	}
+func getSubGroups(P []*party, t, k int) [][]*party { _ = "STUB: not implemented"; return nil }
 
-	groups := [][]*party{}
-	for i := 0; i < k; i++ {
-		start := (i * t) % len(P)
-		end := ((i + 1) * t) % len(P)
-		switch {
-		case i > 0 && start == 0 && end == t:
-			return groups
-		case start > end:
-			group := make([]*party, t)
-			copy(group, P[0:end])
-			copy(group[end:], P[start:])
-			groups = append(groups, group)
-		default:
-			groups = append(groups, P[start:end])
-		}
-	}
-
-	return groups
-}
-
-func formatByteSize(b int) string {
-	const unit = 1000
-	if b < unit {
-		return fmt.Sprintf("%d B", b)
-	}
-	div, exp := int64(unit), 0
-	for n := b / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB",
-		float64(b)/float64(div), "kMGTPE"[exp])
-}
+func formatByteSize(b int) string { _ = "STUB: not implemented"; return "" }

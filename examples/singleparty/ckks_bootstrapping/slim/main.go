@@ -35,7 +35,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math"
 
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/bootstrapping"
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/dft"
@@ -309,30 +308,6 @@ func main() {
 }
 
 func printDebug(params ckks.Parameters, ciphertext *rlwe.Ciphertext, valuesWant []complex128, decryptor *rlwe.Decryptor, encoder *ckks.Encoder) (valuesTest []complex128) {
-
-	slots := ciphertext.Slots()
-
-	if !ciphertext.IsBatched {
-		slots *= 2
-	}
-
-	valuesTest = make([]complex128, slots)
-
-	if err := encoder.Decode(decryptor.DecryptNew(ciphertext), valuesTest); err != nil {
-		panic(err)
-	}
-
-	fmt.Println()
-	fmt.Printf("Level: %d (logQ = %d)\n", ciphertext.Level(), params.LogQLvl(ciphertext.Level()))
-
-	fmt.Printf("Scale: 2^%f\n", math.Log2(ciphertext.Scale.Float64()))
-	fmt.Printf("ValuesTest: %10.14f %10.14f %10.14f %10.14f...\n", valuesTest[0], valuesTest[1], valuesTest[2], valuesTest[3])
-	fmt.Printf("ValuesWant: %10.14f %10.14f %10.14f %10.14f...\n", valuesWant[0], valuesWant[1], valuesWant[2], valuesWant[3])
-
-	precStats := ckks.GetPrecisionStats(params, encoder, nil, valuesWant, valuesTest, 0, false)
-
-	fmt.Println(precStats.String())
-	fmt.Println()
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }

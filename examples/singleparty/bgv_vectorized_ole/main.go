@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/tuneinsight/lattigo/v6/ring"
-	"github.com/tuneinsight/lattigo/v6/utils/bignum"
 	"github.com/tuneinsight/lattigo/v6/utils/sampling"
 )
 
@@ -78,44 +77,11 @@ type vOLErings struct {
 	pDivM *big.Int   // P/M
 }
 
-func newvOLErings(params parameters) *vOLErings {
+func newvOLErings(params parameters) *vOLErings { _ = "STUB: not implemented"; return nil }
 
-	if params.mlevel >= params.plevel {
-		panic("mlevel must be strictly smaller than plevel")
-	}
+/* #nosec G115 -- logQ and N expected to not be negative */
 
-	var err error
-
-	N := 1 << params.logN
-
-	rings := new(vOLErings)
-
-	/* #nosec G115 -- logQ and N expected to not be negative */
-	g := ring.NewNTTFriendlyPrimesGenerator(uint64(params.logQ[1]), uint64(2*N))
-
-	// Generate logQ[0] NTT-friendly primes each close to 2^logQ[1]
-	primes, err := g.NextAlternatingPrimes(params.logQ[0])
-
-	if err != nil {
-		panic(err)
-	}
-
-	if rings.ringQ, err = ring.NewRing(N, primes); err != nil {
-		panic(err)
-	}
-
-	rings.qDivP = bignum.NewInt(1)
-	for _, qi := range primes[params.plevel+1:] {
-		rings.qDivP.Mul(rings.qDivP, bignum.NewInt(qi))
-	}
-
-	rings.pDivM = bignum.NewInt(1)
-	for _, qi := range primes[params.mlevel+1 : params.plevel+1] {
-		rings.pDivM.Mul(rings.pDivM, bignum.NewInt(qi))
-	}
-
-	return rings
-}
+// Generate logQ[0] NTT-friendly primes each close to 2^logQ[1]
 
 type lowNormSampler struct {
 	baseRing *ring.Ring
@@ -123,26 +89,14 @@ type lowNormSampler struct {
 }
 
 func newLowNormSampler(baseRing *ring.Ring) (lns *lowNormSampler) {
-	lns = new(lowNormSampler)
-	lns.baseRing = baseRing
-	lns.coeffs = make([]*big.Int, baseRing.N())
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // Samples a uniform polynomial in Z_{norm}/(X^N + 1)
 func (lns *lowNormSampler) newPolyLowNorm(norm *big.Int) (pol ring.Poly) {
-
-	pol = lns.baseRing.NewPoly()
-
-	prng, _ := sampling.NewPRNG()
-
-	for i := range lns.coeffs {
-		lns.coeffs[i] = bignum.RandInt(prng, norm)
-	}
-
-	lns.baseRing.AtLevel(pol.Level()).SetCoefficientsBigint(lns.coeffs, pol)
-
-	return
+	_ = "STUB: not implemented"
+	return *new(ring.Poly)
 }
 
 func main() {

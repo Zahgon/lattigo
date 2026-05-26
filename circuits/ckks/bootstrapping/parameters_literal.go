@@ -1,15 +1,9 @@
 package bootstrapping
 
 import (
-	"encoding/json"
-	"fmt"
-	"math"
-	"math/bits"
-
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/mod1"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
-	"github.com/tuneinsight/lattigo/v6/utils"
 )
 
 // ParametersLiteral is a struct to parameterize the bootstrapping parameters.
@@ -195,342 +189,133 @@ type IterationsParameters struct {
 // MarshalBinary returns a JSON representation of the target ParametersLiteral struct on a slice of bytes.
 // See Marshal from the [encoding/json] package.
 func (p ParametersLiteral) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(p)
+	_ = "STUB: not implemented"
+	return nil,
+
+		// UnmarshalBinary reads a JSON representation on the target ParametersLiteral struct.
+		// See Unmarshal from the [encoding/json] package.
+		nil
 }
 
-// UnmarshalBinary reads a JSON representation on the target ParametersLiteral struct.
-// See Unmarshal from the [encoding/json] package.
 func (p *ParametersLiteral) UnmarshalBinary(data []byte) (err error) {
-	return json.Unmarshal(data, p)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // GetLogN returns the LogN field of the target [ParametersLiteral].
 // The default value DefaultLogN is returned if the field is nil.
-func (p ParametersLiteral) GetLogN() (LogN int) {
-	if v := p.LogN; v == nil {
-		LogN = DefaultLogN
-	} else {
-		LogN = *v
-	}
-
-	return
-}
+func (p ParametersLiteral) GetLogN() (LogN int) { _ = "STUB: not implemented"; return 0 }
 
 // GetDefaultXs returns the Xs field of the target [ParametersLiteral].
 // The default value DefaultXs is returned if the field is nil.
 func (p ParametersLiteral) GetDefaultXs() (Xs ring.DistributionParameters) {
-	if v := p.Xs; v == nil {
-		Xs = DefaultXs
-	} else {
-		Xs = v
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return *new(ring.DistributionParameters)
 }
 
 // GetDefaultXe returns the Xe field of the target [ParametersLiteral].
 // The default value DefaultXe is returned if the field is nil.
 func (p ParametersLiteral) GetDefaultXe() (Xe ring.DistributionParameters) {
-	if v := p.Xe; v == nil {
-		Xe = DefaultXe
-	} else {
-		Xe = v
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return *new(ring.DistributionParameters)
 }
 
 // GetLogP returns the list of bit-size of the primes Pi (extended primes for the key-switching)
 // according to the number of #Qi (ciphertext primes).
 // The default value is 61 * max(1, floor(sqrt(#Qi))).
 func (p ParametersLiteral) GetLogP(NumberOfQi int) (LogP []int) {
-	if v := p.LogP; v == nil {
-		LogP = make([]int, utils.Max(1, int(math.Sqrt(float64(NumberOfQi)))))
-		for i := range LogP {
-			LogP[i] = 61
-		}
-	} else {
-		LogP = v
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // GetLogSlots returns the LogSlots field of the target [ParametersLiteral].
 // The default value LogN-1 is returned if the field is nil.
 func (p ParametersLiteral) GetLogSlots() (LogSlots int, err error) {
-
-	LogN := p.GetLogN()
-
-	if v := p.LogSlots; v == nil {
-		LogSlots = LogN - 1
-
-	} else {
-		LogSlots = *v
-
-		if LogSlots < 1 || LogSlots > LogN-1 {
-			return LogSlots, fmt.Errorf("field LogSlots cannot be smaller than 1 or greater than LogN-1")
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // GetCoeffsToSlotsFactorizationDepthAndLogScales returns a copy of the CoeffsToSlotsFactorizationDepthAndLogScales field of the target [ParametersLiteral].
 // The default value constructed from [DefaultSlotsToCoeffsFactorizationDepth] and [DefaultSlotsToCoeffsLogScale] is returned if the field is nil.
 func (p ParametersLiteral) GetCoeffsToSlotsFactorizationDepthAndLogScales(LogSlots int) (CoeffsToSlotsFactorizationDepthAndLogScales [][]int, err error) {
-	if p.CoeffsToSlotsFactorizationDepthAndLogScales == nil {
-		CoeffsToSlotsFactorizationDepthAndLogScales = make([][]int, utils.Min(DefaultCoeffsToSlotsFactorizationDepth, utils.Max(LogSlots, 1)))
-		for i := range CoeffsToSlotsFactorizationDepthAndLogScales {
-			CoeffsToSlotsFactorizationDepthAndLogScales[i] = []int{DefaultCoeffsToSlotsLogScale}
-		}
-	} else {
-		var depth int
-		for _, level := range p.CoeffsToSlotsFactorizationDepthAndLogScales {
-			for range level {
-				depth++
-				if depth > LogSlots {
-					return nil, fmt.Errorf("field CoeffsToSlotsFactorizationDepthAndLogScales cannot contain parameters for a depth > LogSlots")
-				}
-			}
-		}
-		CoeffsToSlotsFactorizationDepthAndLogScales = p.CoeffsToSlotsFactorizationDepthAndLogScales
-	}
-	return
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // GetSlotsToCoeffsFactorizationDepthAndLogScales returns a copy of the SlotsToCoeffsFactorizationDepthAndLogScales field of the target [ParametersLiteral].
 // The default value constructed from [DefaultSlotsToCoeffsFactorizationDepth] and [DefaultSlotsToCoeffsLogScale] is returned if the field is nil.
 func (p ParametersLiteral) GetSlotsToCoeffsFactorizationDepthAndLogScales(LogSlots int) (SlotsToCoeffsFactorizationDepthAndLogScales [][]int, err error) {
-	if p.SlotsToCoeffsFactorizationDepthAndLogScales == nil {
-		SlotsToCoeffsFactorizationDepthAndLogScales = make([][]int, utils.Min(DefaultSlotsToCoeffsFactorizationDepth, utils.Max(LogSlots, 1)))
-		for i := range SlotsToCoeffsFactorizationDepthAndLogScales {
-			SlotsToCoeffsFactorizationDepthAndLogScales[i] = []int{DefaultSlotsToCoeffsLogScale}
-		}
-	} else {
-		var depth int
-		for _, level := range p.SlotsToCoeffsFactorizationDepthAndLogScales {
-			for range level {
-				depth++
-				if depth > LogSlots {
-					return nil, fmt.Errorf("field SlotsToCoeffsFactorizationDepthAndLogScales cannot contain parameters for a depth > LogSlots")
-				}
-			}
-		}
-		SlotsToCoeffsFactorizationDepthAndLogScales = p.SlotsToCoeffsFactorizationDepthAndLogScales
-	}
-	return
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // GetEvalMod1LogScale returns the EvalModLogScale field of the target [ParametersLiteral].
 // The default value [DefaultEvalModLogScale] is returned if the field is nil.
 func (p ParametersLiteral) GetEvalMod1LogScale() (EvalModLogScale int, err error) {
-	if v := p.EvalModLogScale; v == nil {
-		EvalModLogScale = DefaultEvalModLogScale
-
-	} else {
-		EvalModLogScale = *v
-
-		if EvalModLogScale < 0 || EvalModLogScale > 60 {
-			return EvalModLogScale, fmt.Errorf("field EvalModLogScale cannot be smaller than 0 or greater than 60")
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // GetIterationsParameters returns the [IterationsParameters] field of the target [ParametersLiteral].
 // The default value is nil.
 func (p ParametersLiteral) GetIterationsParameters() (Iterations *IterationsParameters, err error) {
-
-	if v := p.IterationsParameters; v == nil {
-		return nil, nil
-	} else {
-
-		if len(v.BootstrappingPrecision) < 1 {
-			return nil, fmt.Errorf("field BootstrappingPrecision of IterationsParameters must be greater than 0")
-		}
-
-		for _, prec := range v.BootstrappingPrecision {
-			if prec == 0 {
-				return nil, fmt.Errorf("field BootstrappingPrecision of IterationsParameters cannot be 0")
-			}
-		}
-
-		if v.ReservedPrimeBitSize > 61 {
-			return nil, fmt.Errorf("field ReservedPrimeBitSize of IterationsParameters cannot be larger than 61")
-		}
-
-		return v, nil
-	}
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // GetLogMessageRatio returns the []LogMessageRatio field of the target [ParametersLiteral].
 // The default value [DefaultLogMessageRatio] is returned if the field is nil.
 func (p ParametersLiteral) GetLogMessageRatio() (LogMessageRatio int, err error) {
-	if v := p.LogMessageRatio; v == nil {
-		LogMessageRatio = DefaultLogMessageRatio
-	} else {
-		LogMessageRatio = *v
-
-		if LogMessageRatio < 0 {
-			return LogMessageRatio, fmt.Errorf("field LogMessageRatio cannot be negative")
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // GetK returns the K field of the target [ParametersLiteral].
 // The default value [DefaultK] is returned if the field is nil.
-func (p ParametersLiteral) GetK() (K int, err error) {
-	if v := p.K; v == nil {
-		K = DefaultK
-	} else {
-		K = *v
-
-		if K < 0 {
-			return K, fmt.Errorf("field K cannot be negative")
-		}
-	}
-
-	return
-}
+func (p ParametersLiteral) GetK() (K int, err error) { _ = "STUB: not implemented"; return 0, nil }
 
 // GetMod1Type returns the Mod1Type field of the target ParametersLiteral.
 // The default value DefaultMod1Type is returned if the field is nil.
 func (p ParametersLiteral) GetMod1Type() (Mod1Type mod1.Type) {
-	return p.Mod1Type
+	_ = "STUB: not implemented"
+
+	// GetDoubleAngle returns the DoubleAngle field of the target [ParametersLiteral].
+	// The default value [DefaultDoubleAngle] is returned if the field is nil.
+	return *new(mod1.Type)
 }
 
-// GetDoubleAngle returns the DoubleAngle field of the target [ParametersLiteral].
-// The default value [DefaultDoubleAngle] is returned if the field is nil.
 func (p ParametersLiteral) GetDoubleAngle() (DoubleAngle int, err error) {
-
-	if v := p.DoubleAngle; v == nil {
-
-		switch p.GetMod1Type() {
-		case mod1.SinContinuous:
-			DoubleAngle = 0
-		default:
-			DoubleAngle = DefaultDoubleAngle
-		}
-
-	} else {
-		DoubleAngle = *v
-
-		if DoubleAngle < 0 {
-			return DoubleAngle, fmt.Errorf("field DoubleAngle cannot be negative")
-		}
-	}
-	return
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // GetMod1Degree returns the Mod1Degree field of the target [ParametersLiteral].
 // The default value [DefaultMod1Degree] is returned if the field is nil.
 func (p ParametersLiteral) GetMod1Degree() (Mod1Degree int, err error) {
-	if v := p.Mod1Degree; v == nil {
-		Mod1Degree = DefaultMod1Degree
-	} else {
-		Mod1Degree = *v
-
-		if Mod1Degree < 0 {
-			return Mod1Degree, fmt.Errorf("field Mod1Degree cannot be negative")
-		}
-	}
-	return
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // GetMod1InvDegree returns the Mod1InvDegree field of the target [ParametersLiteral].
 // The default value [DefaultMod1InvDegree] is returned if the field is nil.
 func (p ParametersLiteral) GetMod1InvDegree() (Mod1InvDegree int, err error) {
-	if v := p.Mod1InvDegree; v == nil {
-		Mod1InvDegree = DefaultMod1InvDegree
-	} else {
-		Mod1InvDegree = *v
-
-		if Mod1InvDegree < 0 {
-			return Mod1InvDegree, fmt.Errorf("field Mod1InvDegree cannot be negative")
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // GetEphemeralSecretWeight returns the EphemeralSecretWeight field of the target [ParametersLiteral].
 // The default value [DefaultEphemeralSecretWeight] is returned if the field is nil.
 func (p ParametersLiteral) GetEphemeralSecretWeight() (EphemeralSecretWeight int, err error) {
-	if v := p.EphemeralSecretWeight; v == nil {
-		EphemeralSecretWeight = DefaultEphemeralSecretWeight
-	} else {
-		EphemeralSecretWeight = *v
-
-		if EphemeralSecretWeight < 0 {
-			return EphemeralSecretWeight, fmt.Errorf("field EphemeralSecretWeight cannot be negative")
-		}
-	}
-	return
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // BitConsumption returns the expected consumption in bits of
 // bootstrapping circuit of the target [ParametersLiteral].
 // The value is rounded up and thus will overestimate the value by up to 1 bit.
 func (p ParametersLiteral) BitConsumption(LogSlots int) (logQ int, err error) {
-
-	var C2SLogPlaintextScale [][]int
-	if C2SLogPlaintextScale, err = p.GetCoeffsToSlotsFactorizationDepthAndLogScales(LogSlots); err != nil {
-		return
-	}
-
-	for i := range C2SLogPlaintextScale {
-		for _, logQi := range C2SLogPlaintextScale[i] {
-			logQ += logQi
-		}
-	}
-
-	var S2CLogPlaintextScale [][]int
-	if S2CLogPlaintextScale, err = p.GetSlotsToCoeffsFactorizationDepthAndLogScales(LogSlots); err != nil {
-		return
-	}
-
-	for i := range S2CLogPlaintextScale {
-		for _, logQi := range S2CLogPlaintextScale[i] {
-			logQ += logQi
-		}
-	}
-
-	var Mod1Degree int
-	if Mod1Degree, err = p.GetMod1Degree(); err != nil {
-		return
-	}
-
-	var EvalModLogPlaintextScale int
-	if EvalModLogPlaintextScale, err = p.GetEvalMod1LogScale(); err != nil {
-		return
-	}
-
-	var DoubleAngle int
-	if DoubleAngle, err = p.GetDoubleAngle(); err != nil {
-		return
-	}
-
-	var Mod1InvDegree int
-	if Mod1InvDegree, err = p.GetMod1InvDegree(); err != nil {
-		return
-	}
-
-	var Iterations *IterationsParameters
-	if Iterations, err = p.GetIterationsParameters(); err != nil {
-		return
-	}
-
-	var ReservedPrimeBitSize int
-	if Iterations != nil {
-		ReservedPrimeBitSize = Iterations.ReservedPrimeBitSize
-	}
-
-	/* #nosec G115 -- Mod1Degree, Mod1InvDegree cannot be negative */
-	logQ += 1 + EvalModLogPlaintextScale*(bits.Len64(uint64(Mod1Degree))+DoubleAngle+bits.Len64(uint64(Mod1InvDegree))) + ReservedPrimeBitSize
-
-	return
+	_ = "STUB: not implemented"
+	return 0, nil
 }
+
+/* #nosec G115 -- Mod1Degree, Mod1InvDegree cannot be negative */

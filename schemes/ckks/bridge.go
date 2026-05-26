@@ -1,11 +1,8 @@
 package ckks
 
 import (
-	"fmt"
-
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
-	"github.com/tuneinsight/lattigo/v6/utils"
 )
 
 // DomainSwitcher is a type for switching between the standard CKKS domain (which encrypts vectors of complex numbers)
@@ -23,28 +20,12 @@ type DomainSwitcher struct {
 // either of the two ring types).
 // The comlexToRealEvk and comlexToRealEvk EvaluationKeys can be generated using [rlwe.KeyGenerator.GenEvaluationKeysForRingSwap].
 func NewDomainSwitcher(params Parameters, comlexToRealEvk, realToComplexEvk *rlwe.EvaluationKey) (DomainSwitcher, error) {
-
-	s := DomainSwitcher{
-		stdToci: comlexToRealEvk,
-		ciToStd: realToComplexEvk,
-	}
-	var err error
-	if s.stdRingQ, err = params.RingQ().StandardRing(); err != nil {
-		return DomainSwitcher{}, fmt.Errorf("cannot NewDomainSwitcher because the standard NTT is undefined for params: %s", err)
-	}
-	if s.conjugateRingQ, err = params.RingQ().ConjugateInvariantRing(); err != nil {
-		return DomainSwitcher{}, fmt.Errorf("cannot NewDomainSwitcher because the standard NTT is undefined for params: %s", err)
-	}
-
-	// Sanity check, this error should not happen unless the
-	// algorithm has been modified to provide invalid inputs.
-	if s.automorphismIndex, err = ring.AutomorphismNTTIndex(s.stdRingQ.N(), s.stdRingQ.NthRoot(), s.stdRingQ.NthRoot()-1); err != nil {
-		panic(err)
-	}
-	s.poolQ = ring.NewPool(s.stdRingQ)
-
-	return s, nil
+	_ = "STUB: not implemented"
+	return *new(DomainSwitcher), nil
 }
+
+// Sanity check, this error should not happen unless the
+// algorithm has been modified to provide invalid inputs.
 
 // ComplexToReal switches the provided ciphertext ctIn from the standard domain to the conjugate
 // invariant domain and writes the result into opOut.
@@ -55,43 +36,8 @@ func NewDomainSwitcher(params Parameters, comlexToRealEvk, realToComplexEvk *rlw
 // The security is changed from Z[X]/(X^N+1) to Z[X]/(X^N/2+1).
 // The method will return an error if the DomainSwitcher was not initialized with a the appropriate EvaluationKeys.
 func (switcher DomainSwitcher) ComplexToReal(eval *Evaluator, ctIn, opOut *rlwe.Ciphertext) (err error) {
-
-	evalRLWE := eval.Evaluator
-
-	if evalRLWE.GetRLWEParameters().RingType() != ring.Standard {
-		return fmt.Errorf("cannot ComplexToReal: provided evaluator is not instantiated with RingType ring.Standard")
-	}
-
-	level := utils.Min(ctIn.Level(), opOut.Level())
-
-	if ctIn.Value[0].N() != 2*opOut.Value[0].N() {
-		return fmt.Errorf("cannot ComplexToReal: ctIn ring degree must be twice opOut ring degree")
-	}
-
-	opOut.Resize(1, level)
-
-	if switcher.stdToci == nil {
-		return fmt.Errorf("cannot ComplexToReal: no realToComplexEvk provided to this DomainSwitcher")
-	}
-
-	poolQ := switcher.poolQ.AtLevel(level)
-	buffQ1 := poolQ.GetBuffPoly()
-	defer poolQ.RecycleBuffPoly(buffQ1)
-	buffQ2 := poolQ.GetBuffPoly()
-	defer poolQ.RecycleBuffPoly(buffQ2)
-
-	ctTmp := &rlwe.Ciphertext{}
-	ctTmp.Value = []ring.Poly{*buffQ1, *buffQ2}
-	ctTmp.MetaData = ctIn.MetaData
-
-	evalRLWE.GadgetProduct(level, ctIn.Value[1], &switcher.stdToci.GadgetCiphertext, ctTmp)
-	switcher.stdRingQ.AtLevel(level).Add(*buffQ1, ctIn.Value[0], *buffQ1)
-
-	switcher.conjugateRingQ.AtLevel(level).FoldStandardToConjugateInvariant(*buffQ1, switcher.automorphismIndex, opOut.Value[0])
-	switcher.conjugateRingQ.AtLevel(level).FoldStandardToConjugateInvariant(*buffQ2, switcher.automorphismIndex, opOut.Value[1])
-	*opOut.MetaData = *ctIn.MetaData
-	opOut.Scale = ctIn.Scale.Mul(rlwe.NewScale(2))
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // RealToComplex switches the provided ciphertext ctIn from the conjugate invariant domain to the
@@ -102,43 +48,8 @@ func (switcher DomainSwitcher) ComplexToReal(eval *Evaluator, ctIn, opOut *rlwe.
 // The security is changed from Z[X]/(X^N+1) to Z[X]/(X^2N+1).
 // The method will return an error if the [DomainSwitcher] was not initialized with a the appropriate EvaluationKeys.
 func (switcher DomainSwitcher) RealToComplex(eval *Evaluator, ctIn, opOut *rlwe.Ciphertext) (err error) {
-
-	evalRLWE := eval.Evaluator
-
-	if evalRLWE.GetRLWEParameters().RingType() != ring.Standard {
-		return fmt.Errorf("cannot RealToComplex: provided evaluator is not instantiated with RingType ring.Standard")
-	}
-
-	level := utils.Min(ctIn.Level(), opOut.Level())
-
-	if 2*ctIn.Value[0].N() != opOut.Value[0].N() {
-		return fmt.Errorf("cannot RealToComplex: opOut ring degree must be twice ctIn ring degree")
-	}
-
-	opOut.Resize(1, level)
-
-	if switcher.ciToStd == nil {
-		return fmt.Errorf("cannot RealToComplex: no realToComplexEvk provided to this DomainSwitcher")
-	}
-
-	stdRingQ := switcher.stdRingQ.AtLevel(level)
-	stdRingQ.UnfoldConjugateInvariantToStandard(ctIn.Value[0], opOut.Value[0])
-	stdRingQ.UnfoldConjugateInvariantToStandard(ctIn.Value[1], opOut.Value[1])
-
-	poolQ := switcher.poolQ.AtLevel(level)
-	buffQ1 := poolQ.GetBuffPoly()
-	defer poolQ.RecycleBuffPoly(buffQ1)
-	buffQ2 := poolQ.GetBuffPoly()
-	defer poolQ.RecycleBuffPoly(buffQ2)
-
-	ctTmp := &rlwe.Ciphertext{}
-	ctTmp.Value = []ring.Poly{*buffQ1, *buffQ2}
-	ctTmp.MetaData = ctIn.MetaData
-
-	// Switches the RCKswitcher key [X+X^-1] to a CKswitcher key [X]
-	evalRLWE.GadgetProduct(level, opOut.Value[1], &switcher.ciToStd.GadgetCiphertext, ctTmp)
-	stdRingQ.Add(opOut.Value[0], *buffQ1, opOut.Value[0])
-	opOut.Value[1].CopyLvl(level, *buffQ2)
-	*opOut.MetaData = *ctIn.MetaData
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// Switches the RCKswitcher key [X+X^-1] to a CKswitcher key [X]

@@ -1,14 +1,10 @@
 package ckks
 
 import (
-	"encoding/json"
-	"fmt"
-	"math"
 	"math/big"
 
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
-	"github.com/tuneinsight/lattigo/v6/utils/bignum"
 )
 
 // PrecisionMode is a variable that defines how many primes (one
@@ -59,19 +55,8 @@ type ParametersLiteral struct {
 
 // GetRLWEParametersLiteral returns the [rlwe.ParametersLiteral] from the target [ckks.ParameterLiteral].
 func (p ParametersLiteral) GetRLWEParametersLiteral() rlwe.ParametersLiteral {
-	return rlwe.ParametersLiteral{
-		LogN:         p.LogN,
-		LogNthRoot:   p.LogNthRoot,
-		Q:            p.Q,
-		P:            p.P,
-		LogQ:         p.LogQ,
-		LogP:         p.LogP,
-		Xe:           p.Xe,
-		Xs:           p.Xs,
-		RingType:     p.RingType,
-		NTTFlag:      NTTFlag,
-		DefaultScale: rlwe.NewScale(math.Exp2(float64(p.LogDefaultScale))),
-	}
+	_ = "STUB: not implemented"
+	return *new(rlwe.ParametersLiteral)
 }
 
 // Parameters represents a parameter set for the CKKS cryptosystem. Its fields are private and
@@ -88,163 +73,89 @@ type Parameters struct {
 //
 // See [rlwe.NewParametersFromLiteral] for default values of the other optional fields.
 func NewParametersFromLiteral(pl ParametersLiteral) (Parameters, error) {
-	rlweParams, err := rlwe.NewParametersFromLiteral(pl.GetRLWEParametersLiteral())
-	if err != nil {
-		return Parameters{}, fmt.Errorf("cannot NewParametersFromLiteral: %w", err)
-	}
-
-	if pl.LogDefaultScale > 128 {
-		return Parameters{}, fmt.Errorf("cannot NewParametersFromLiteral: LogDefaultScale=%d > 128 or < 0", pl.LogDefaultScale)
-	}
-
-	return Parameters{rlweParams}, nil
+	_ = "STUB: not implemented"
+	return *new(Parameters), nil
 }
 
 // StandardParameters returns the CKKS parameters corresponding to the receiver
 // parameter set. If the receiver is already a standard parameter set
 // (i.e., RingType==Standard), then the method returns the receiver.
 func (p Parameters) StandardParameters() (pckks Parameters, err error) {
-	if p.RingType() == ring.Standard {
-		return p, nil
-	}
-	pckks = p
-	pckks.Parameters, err = pckks.Parameters.StandardParameters()
-	return
+	_ = "STUB: not implemented"
+	return *new(Parameters), nil
 }
 
 // ParametersLiteral returns the [ParametersLiteral] of the target [Parameters].
 func (p Parameters) ParametersLiteral() (pLit ParametersLiteral) {
-	return ParametersLiteral{
-		LogN:            p.LogN(),
-		LogNthRoot:      p.LogNthRoot(),
-		Q:               p.Q(),
-		P:               p.P(),
-		Xe:              p.Xe(),
-		Xs:              p.Xs(),
-		RingType:        p.RingType(),
-		LogDefaultScale: p.LogDefaultScale(),
-	}
+	_ = "STUB: not implemented"
+	return *new(ParametersLiteral)
 }
 
 // GetRLWEParameters returns a pointer to the underlying RLWE parameters.
-func (p Parameters) GetRLWEParameters() *rlwe.Parameters {
-	return &p.Parameters
-}
+func (p Parameters) GetRLWEParameters() *rlwe.Parameters { _ = "STUB: not implemented"; return nil }
 
 // MaxLevel returns the maximum ciphertext level
-func (p Parameters) MaxLevel() int {
-	return p.QCount() - 1
-}
+func (p Parameters) MaxLevel() int { _ = "STUB: not implemented"; return 0 }
 
 // MaxDimensions returns the maximum dimension of the matrix that can be SIMD packed in a single plaintext polynomial.
 func (p Parameters) MaxDimensions() ring.Dimensions {
-	switch p.RingType() {
-	case ring.Standard:
-		return ring.Dimensions{Rows: 1, Cols: p.N() >> 1}
-	case ring.ConjugateInvariant:
-		return ring.Dimensions{Rows: 1, Cols: p.N()}
-	default:
-		// Sanity check
-		panic("cannot MaxDimensions: invalid ring type")
-	}
+	_ = "STUB: not implemented"
+	return *new(ring.Dimensions)
 }
+
+// Sanity check
 
 // LogMaxDimensions returns the log2 of maximum dimension of the matrix that can be SIMD packed in a single plaintext polynomial.
 func (p Parameters) LogMaxDimensions() ring.Dimensions {
-	switch p.RingType() {
-	case ring.Standard:
-		return ring.Dimensions{Rows: 0, Cols: p.LogN() - 1}
-	case ring.ConjugateInvariant:
-		return ring.Dimensions{Rows: 0, Cols: p.LogN()}
-	default:
-		// Sanity check
-		panic("cannot LogMaxDimensions: invalid ring type")
-	}
+	_ = "STUB: not implemented"
+	return *new(ring.Dimensions)
 }
+
+// Sanity check
 
 // MaxSlots returns the total number of entries (slots) that a plaintext can store.
 // This value is obtained by multiplying all dimensions from MaxDimensions.
-func (p Parameters) MaxSlots() int {
-	dims := p.MaxDimensions()
-	return dims.Rows * dims.Cols
-}
+func (p Parameters) MaxSlots() int { _ = "STUB: not implemented"; return 0 }
 
 // LogMaxSlots returns the total number of entries (slots) that a plaintext can store.
 // This value is obtained by summing all log dimensions from LogDimensions.
-func (p Parameters) LogMaxSlots() int {
-	dims := p.LogMaxDimensions()
-	return dims.Rows + dims.Cols
-}
+func (p Parameters) LogMaxSlots() int { _ = "STUB: not implemented"; return 0 }
 
 // LogDefaultScale returns the log2 of the default plaintext
 // scaling factor (rounded to the nearest integer).
-func (p Parameters) LogDefaultScale() int {
-	return int(math.Round(math.Log2(p.DefaultScale().Float64())))
-}
+func (p Parameters) LogDefaultScale() int { _ = "STUB: not implemented"; return 0 }
 
 // EncodingPrecision returns the encoding precision in bits of the plaintext values which
 // is max(53, log2(DefaultScale)).
-func (p Parameters) EncodingPrecision() (prec uint) {
-	if log2scale := math.Log2(p.DefaultScale().Float64()); log2scale <= 53 {
-		prec = 53
-	} else {
-		prec = uint(log2scale)
-	}
-
-	return
-}
+func (p Parameters) EncodingPrecision() (prec uint) { _ = "STUB: not implemented"; return 0 }
 
 // PrecisionMode returns the precision mode of the parameters.
 // This value can be [ckks.PREC64] or [ckks.PREC128].
 func (p Parameters) PrecisionMode() PrecisionMode {
-	if p.LogDefaultScale() <= 64 {
-		return PREC64
-	}
-	return PREC128
+	_ = "STUB: not implemented"
+	return *new(PrecisionMode)
 }
 
 // LevelsConsumedPerRescaling returns the number of levels (i.e. primes)
 // consumed per rescaling. This value is 1 if the precision mode is PREC64
 // and is 2 if the precision mode is PREC128.
-func (p Parameters) LevelsConsumedPerRescaling() int {
-	switch p.PrecisionMode() {
-	case PREC128:
-		return 2
-	default:
-		return 1
-	}
-}
+func (p Parameters) LevelsConsumedPerRescaling() int { _ = "STUB: not implemented"; return 0 }
 
 // GetOptimalScalingFactor returns a scaling factor b such that Rescale(a * b) = c
 func (p Parameters) GetOptimalScalingFactor(a, c rlwe.Scale, level int) (b rlwe.Scale) {
-	b = rlwe.NewScale(1)
-	Q := p.Q()
-	for i := 0; i < p.LevelsConsumedPerRescaling(); i++ {
-		b = b.Mul(rlwe.NewScale(Q[level-i]))
-	}
-	return
+	_ = "STUB: not implemented"
+	return *new(rlwe.Scale)
 }
 
 // MaxDepth returns the maximum depth enabled by the parameters,
 // which is obtained as p.MaxLevel() / p.LevelsConsumedPerRescaling().
-func (p Parameters) MaxDepth() int {
-	return p.MaxLevel() / p.LevelsConsumedPerRescaling()
-}
+func (p Parameters) MaxDepth() int { _ = "STUB: not implemented"; return 0 }
 
 // LogQLvl returns the size of the modulus Q in bits at a specific level
-func (p Parameters) LogQLvl(level int) int {
-	tmp := p.QLvl(level)
-	return tmp.BitLen()
-}
+func (p Parameters) LogQLvl(level int) int { _ = "STUB: not implemented"; return 0 }
 
 // QLvl returns the product of the moduli at the given level as a [big.Int]
-func (p Parameters) QLvl(level int) *big.Int {
-	tmp := bignum.NewInt(1)
-	for _, qi := range p.Q()[:level+1] {
-		tmp.Mul(tmp, bignum.NewInt(qi))
-	}
-	return tmp
-}
+func (p Parameters) QLvl(level int) *big.Int { _ = "STUB: not implemented"; return nil }
 
 // GaloisElementForRotation returns the Galois element for generating the
 // automorphism phi(k): X -> X^{5^k mod 2N} mod (X^{N} + 1), which acts as a
@@ -264,9 +175,7 @@ func (p Parameters) QLvl(level int) *big.Int {
 //
 // Note that when using the ConjugateInvariant variant of the scheme, the conjugate is
 // dropped and the matrix becomes an 1xN matrix.
-func (p Parameters) GaloisElementForRotation(k int) uint64 {
-	return p.Parameters.GaloisElement(k)
-}
+func (p Parameters) GaloisElementForRotation(k int) uint64 { _ = "STUB: not implemented"; return 0 }
 
 // GaloisElementForComplexConjugation returns the Galois element for generating the
 // automorphism X -> X^{-1 mod NthRoot} mod (X^{N} + 1). This automorphism
@@ -286,94 +195,56 @@ func (p Parameters) GaloisElementForRotation(k int) uint64 {
 // Note that when using the ConjugateInvariant variant of the scheme, the conjugate is
 // dropped and this operation is not defined.
 func (p Parameters) GaloisElementForComplexConjugation() uint64 {
-	return p.Parameters.GaloisElementOrderTwoOrthogonalSubgroup()
+	_ = "STUB: not implemented"
+	return 0
 }
 
 // GaloisElementsForInnerSum returns the list of Galois elements necessary to apply the method
 // `InnerSum` operation with parameters batch and n.
 func (p Parameters) GaloisElementsForInnerSum(batch, n int) []uint64 {
-	return rlwe.GaloisElementsForInnerSum(p, batch, n)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // GaloisElementsForReplicate returns the list of Galois elements necessary to perform the
 // `Replicate` operation with parameters batch and n.
 func (p Parameters) GaloisElementsForReplicate(batch, n int) []uint64 {
-	return rlwe.GaloisElementsForReplicate(p, batch, n)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // GaloisElementsForTrace returns the list of Galois elements required for the for the Trace operation.
 // Trace maps X -> sum((-1)^i * X^{i*n+1}) for 2^{LogN} <= i < N.
 func (p Parameters) GaloisElementsForTrace(logN int) []uint64 {
-	return rlwe.GaloisElementsForTrace(p, logN)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // Equal compares two sets of parameters for equality.
-func (p Parameters) Equal(other *Parameters) bool {
-	return p.Parameters.Equal(&other.Parameters)
-}
+func (p Parameters) Equal(other *Parameters) bool { _ = "STUB: not implemented"; return false }
 
 // MarshalBinary returns a []byte representation of the parameter set.
 // This representation corresponds to the one returned by MarshalJSON.
 func (p Parameters) MarshalBinary() ([]byte, error) {
-	return p.MarshalJSON()
+	_ = "STUB: not implemented"
+	return nil,
+
+		// UnmarshalBinary decodes a []byte into a parameter set struct
+		nil
 }
 
-// UnmarshalBinary decodes a []byte into a parameter set struct
 func (p *Parameters) UnmarshalBinary(data []byte) (err error) {
-	return p.UnmarshalJSON(data)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // MarshalJSON returns a JSON representation of this parameter set. See Marshal from the [encoding/json] package.
-func (p Parameters) MarshalJSON() ([]byte, error) {
-	return json.Marshal(p.ParametersLiteral())
-}
+func (p Parameters) MarshalJSON() ([]byte, error) { _ = "STUB: not implemented"; return nil, nil }
 
 // UnmarshalJSON reads a JSON representation of a parameter set into the receiver Parameter. See Unmarshal from the [encoding/json] package.
-func (p *Parameters) UnmarshalJSON(data []byte) (err error) {
-	var params ParametersLiteral
-	if err = json.Unmarshal(data, &params); err != nil {
-		return
-	}
-	*p, err = NewParametersFromLiteral(params)
-	return
-}
+func (p *Parameters) UnmarshalJSON(data []byte) (err error) { _ = "STUB: not implemented"; return nil }
 
 func (p *ParametersLiteral) UnmarshalJSON(b []byte) (err error) {
-	var pl struct {
-		LogN            int
-		LogNthRoot      int
-		Q               []uint64
-		P               []uint64
-		LogQ            []int
-		LogP            []int
-		Pow2Base        int
-		Xe              map[string]interface{}
-		Xs              map[string]interface{}
-		RingType        ring.Type
-		LogDefaultScale int
-	}
-
-	err = json.Unmarshal(b, &pl)
-	if err != nil {
-		return err
-	}
-
-	p.LogN = pl.LogN
-	p.LogNthRoot = pl.LogNthRoot
-	p.Q, p.P, p.LogQ, p.LogP = pl.Q, pl.P, pl.LogQ, pl.LogP
-	if pl.Xs != nil {
-		p.Xs, err = ring.ParametersFromMap(pl.Xs)
-		if err != nil {
-			return err
-		}
-	}
-	if pl.Xe != nil {
-		p.Xe, err = ring.ParametersFromMap(pl.Xe)
-		if err != nil {
-			return err
-		}
-	}
-	p.RingType = pl.RingType
-	p.LogDefaultScale = pl.LogDefaultScale
-	return err
+	_ = "STUB: not implemented"
+	return nil
 }

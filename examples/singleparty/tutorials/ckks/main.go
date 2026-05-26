@@ -764,18 +764,8 @@ func main() {
 
 }
 
-func newVec(size int) []complex128 {
-	return make([]complex128, size)
-}
+func newVec(size int) []complex128 { _ = "STUB: not implemented"; return nil }
 
-func add(a, b, c []complex128) {
-	for i := range a {
-		c[i] = a[i] + b[i]
-	}
-}
+func add(a, b, c []complex128) { _ = "STUB: not implemented"; return }
 
-func muladd(a, b, c []complex128) {
-	for i := range a {
-		c[i] = c[i] + a[i]*b[i]
-	}
-}
+func muladd(a, b, c []complex128) { _ = "STUB: not implemented"; return }

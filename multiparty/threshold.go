@@ -1,13 +1,11 @@
 package multiparty
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
 	"github.com/tuneinsight/lattigo/v6/ring/ringqp"
-	"github.com/tuneinsight/lattigo/v6/utils/sampling"
 	"github.com/tuneinsight/lattigo/v6/utils/structs"
 )
 
@@ -59,129 +57,63 @@ type ShamirSecretShare struct {
 
 // NewThresholdizer creates a new [Thresholdizer] instance from parameters.
 func NewThresholdizer(params rlwe.ParameterProvider) Thresholdizer {
-
-	thr := Thresholdizer{}
-	thr.params = params.GetRLWEParameters()
-	thr.ringQP = thr.params.RingQP()
-
-	prng, err := sampling.NewPRNG()
-
-	// Sanity check, this error should not happen.
-	if err != nil {
-		panic(fmt.Errorf("could not initialize PRNG: %s", err))
-	}
-
-	thr.usampler = ringqp.NewUniformSampler(prng, *thr.params.RingQP())
-
-	return thr
+	_ = "STUB: not implemented"
+	return *new(Thresholdizer)
 }
+
+// Sanity check, this error should not happen.
 
 // GenShamirPolynomial generates a new secret [ShamirPolynomial] to be used in the [Thresholdizer.GenShamirSecretShare] method.
 // It does so by sampling a random polynomial of degree threshold - 1 and with its constant term equal to secret.
 func (thr Thresholdizer) GenShamirPolynomial(threshold int, secret *rlwe.SecretKey) (ShamirPolynomial, error) {
-	if threshold < 1 {
-		return ShamirPolynomial{}, fmt.Errorf("threshold should be >= 1")
-	}
-	gen := make([]ringqp.Poly, int(threshold))
-	gen[0] = *secret.Value.CopyNew()
-	for i := 1; i < threshold; i++ {
-		gen[i] = thr.ringQP.NewPoly()
-		thr.usampler.Read(gen[i])
-	}
-
-	return ShamirPolynomial{Value: structs.Vector[ringqp.Poly](gen)}, nil
+	_ = "STUB: not implemented"
+	return *new(ShamirPolynomial), nil
 }
 
 // AllocateThresholdSecretShare allocates a [ShamirSecretShare] struct.
 func (thr Thresholdizer) AllocateThresholdSecretShare() ShamirSecretShare {
-	return ShamirSecretShare{thr.ringQP.NewPoly()}
+	_ = "STUB: not implemented"
+	return *new(ShamirSecretShare)
 }
 
 // GenShamirSecretShare generates a secret share for the given recipient, identified by its [ShamirPublicPoint].
 // The result is stored in ShareOut and should be sent to this party.
 func (thr Thresholdizer) GenShamirSecretShare(recipient ShamirPublicPoint, secretPoly ShamirPolynomial, shareOut *ShamirSecretShare) {
-	thr.ringQP.EvalPolyScalar(secretPoly.Value, uint64(recipient), shareOut.Poly)
+	_ = "STUB: not implemented"
+	return
 }
 
 // AggregateShares aggregates two [ShamirSecretShare] and stores the result in outShare.
 func (thr Thresholdizer) AggregateShares(share1, share2 ShamirSecretShare, outShare *ShamirSecretShare) (err error) {
-	if share1.LevelQ() != share2.LevelQ() || share1.LevelQ() != outShare.LevelQ() || share1.LevelP() != share2.LevelP() || share1.LevelP() != outShare.LevelP() {
-		return fmt.Errorf("cannot AggregateShares: shares level do not match")
-	}
-	thr.ringQP.AtLevel(share1.LevelQ(), share1.LevelP()).Add(share1.Poly, share2.Poly, outShare.Poly)
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // NewCombiner creates a new [Combiner] struct from the parameters and the set of [ShamirPublicPoints]. Note that the other
 // parameter may contain the instantiator's own [ShamirPublicPoint].
 func NewCombiner(params rlwe.ParameterProvider, own ShamirPublicPoint, others []ShamirPublicPoint, threshold int) Combiner {
-	cmb := Combiner{}
-	cmb.ringQP = params.GetRLWEParameters().RingQP()
-	cmb.threshold = threshold
-	cmb.tmp1, cmb.tmp2 = cmb.ringQP.NewRNSScalar(), cmb.ringQP.NewRNSScalar()
-	cmb.one = cmb.ringQP.NewRNSScalarFromUInt64(1)
-
-	qlen := cmb.ringQP.RingQ.ModuliChainLength()
-	for i, s := range cmb.ringQP.RingQ.SubRings {
-		cmb.one[i] = ring.MForm(cmb.one[i], s.Modulus, s.BRedConstant)
-	}
-	if cmb.ringQP.RingP != nil {
-		for i, s := range cmb.ringQP.RingP.SubRings {
-			cmb.one[i+qlen] = ring.MForm(cmb.one[i+qlen], s.Modulus, s.BRedConstant)
-		}
-	}
-
-	// precomputes lagrange coefficient factors
-	cmb.lagrangeCoeffs = make(map[ShamirPublicPoint]ring.RNSScalar)
-	for _, spk := range others {
-		if spk != own {
-			cmb.lagrangeCoeffs[spk] = cmb.ringQP.NewRNSScalar()
-			cmb.lagrangeCoeff(own, spk, cmb.lagrangeCoeffs[spk])
-		}
-	}
-
-	return cmb
+	_ = "STUB: not implemented"
+	return *new(Combiner)
 }
+
+// precomputes lagrange coefficient factors
 
 // GenAdditiveShare generates a t-out-of-t additive share of the secret from a local aggregated share ownSecret and the set of active identities, identified
 // by their [ShamirPublicPoint]. It stores the resulting additive share in skOut.
 func (cmb Combiner) GenAdditiveShare(activesPoints []ShamirPublicPoint, ownPoint ShamirPublicPoint, ownShare ShamirSecretShare, skOut *rlwe.SecretKey) (err error) {
+	_ = "STUB: not implemented"
+	return nil
+}
 
-	if len(activesPoints) < cmb.threshold {
-		return fmt.Errorf("cannot GenAdditiveShare: Not enough active players to combine threshold shares")
-	}
+//Lagrange Interpolation with the public threshold key of other active players
 
-	prod := cmb.tmp2
-	copy(prod, cmb.one)
-
-	for _, active := range activesPoints[:cmb.threshold] {
-		//Lagrange Interpolation with the public threshold key of other active players
-		if active != ownPoint {
-			cmb.tmp1 = cmb.lagrangeCoeffs[active]
-			cmb.ringQP.MulRNSScalar(prod, cmb.tmp1, prod)
-		}
-	}
-
-	cmb.ringQP.MulRNSScalarMontgomery(ownShare.Poly, prod, skOut.Value)
+func (cmb Combiner) lagrangeCoeff(thisKey ShamirPublicPoint, thatKey ShamirPublicPoint, lagCoeff []uint64) {
+	_ = "STUB: not implemented"
 	return
 }
 
-func (cmb Combiner) lagrangeCoeff(thisKey ShamirPublicPoint, thatKey ShamirPublicPoint, lagCoeff []uint64) {
-
-	this := cmb.ringQP.NewRNSScalarFromUInt64(uint64(thisKey))
-	that := cmb.ringQP.NewRNSScalarFromUInt64(uint64(thatKey))
-
-	cmb.ringQP.SubRNSScalar(that, this, lagCoeff)
-
-	cmb.ringQP.Inverse(lagCoeff)
-
-	cmb.ringQP.MulRNSScalar(lagCoeff, that, lagCoeff)
-}
-
 // BinarySize returns the serialized size of the object in bytes.
-func (s ShamirSecretShare) BinarySize() int {
-	return s.Poly.BinarySize()
-}
+func (s ShamirSecretShare) BinarySize() int { _ = "STUB: not implemented"; return 0 }
 
 // WriteTo writes the object on an [io.Writer]. It implements the [io.WriterTo]
 // interface, and will write exactly object.BinarySize() bytes on w.
@@ -195,31 +127,40 @@ func (s ShamirSecretShare) BinarySize() int {
 //   - When writing to a pre-allocated var b []byte, it is preferable to pass
 //     buffer.NewBuffer(b) as w (see lattigo/utils/buffer/buffer.go).
 func (s ShamirSecretShare) WriteTo(w io.Writer) (n int64, err error) {
-	return s.Poly.WriteTo(w)
+	_ = "STUB: not implemented"
+	return 0,
+
+		// ReadFrom reads on the object from an [io.Writer]. It implements the
+		// [io.ReaderFrom] interface.
+		//
+		// Unless r implements the [buffer.Reader] interface (see see lattigo/utils/buffer/reader.go),
+		// it will be wrapped into a [bufio.Reader]. Since this requires allocation, it
+		// is preferable to pass a [buffer.Reader] directly:
+		//
+		//   - When reading multiple values from a [io.Reader], it is preferable to first
+		//     first wrap [io.Reader] in a pre-allocated [bufio.Reader].
+		//   - When reading from a var b []byte, it is preferable to pass a buffer.NewBuffer(b)
+		//     as w (see lattigo/utils/buffer/buffer.go).
+		nil
 }
 
-// ReadFrom reads on the object from an [io.Writer]. It implements the
-// [io.ReaderFrom] interface.
-//
-// Unless r implements the [buffer.Reader] interface (see see lattigo/utils/buffer/reader.go),
-// it will be wrapped into a [bufio.Reader]. Since this requires allocation, it
-// is preferable to pass a [buffer.Reader] directly:
-//
-//   - When reading multiple values from a [io.Reader], it is preferable to first
-//     first wrap [io.Reader] in a pre-allocated [bufio.Reader].
-//   - When reading from a var b []byte, it is preferable to pass a buffer.NewBuffer(b)
-//     as w (see lattigo/utils/buffer/buffer.go).
 func (s *ShamirSecretShare) ReadFrom(r io.Reader) (n int64, err error) {
-	return s.Poly.ReadFrom(r)
+	_ = "STUB: not implemented"
+	return 0,
+
+		// MarshalBinary encodes the object into a binary form on a newly allocated slice of bytes.
+		nil
 }
 
-// MarshalBinary encodes the object into a binary form on a newly allocated slice of bytes.
 func (s ShamirSecretShare) MarshalBinary() (p []byte, err error) {
-	return s.Poly.MarshalBinary()
+	_ = "STUB: not implemented"
+	return nil, nil
+
+	// UnmarshalBinary decodes a slice of bytes generated by
+	// [ShamirSecretShare.MarshalBinary] or [ShamirSecretShare.WriteTo] on the object.
 }
 
-// UnmarshalBinary decodes a slice of bytes generated by
-// [ShamirSecretShare.MarshalBinary] or [ShamirSecretShare.WriteTo] on the object.
 func (s *ShamirSecretShare) UnmarshalBinary(p []byte) (err error) {
-	return s.Poly.UnmarshalBinary(p)
+	_ = "STUB: not implemented"
+	return nil
 }

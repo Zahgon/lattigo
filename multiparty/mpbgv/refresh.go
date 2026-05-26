@@ -14,29 +14,31 @@ type RefreshProtocol struct {
 
 // NewRefreshProtocol creates a new Refresh protocol instance.
 func NewRefreshProtocol(params bgv.Parameters, noiseFlooding ring.DistributionParameters) (rfp RefreshProtocol, err error) {
-	rfp = RefreshProtocol{}
-	mt, err := NewMaskedTransformProtocol(params, params, noiseFlooding)
-	rfp.MaskedTransformProtocol = mt
-	return rfp, err
+	_ = "STUB: not implemented"
+	return *new(RefreshProtocol), nil
 }
 
 // AllocateShare allocates the shares of the PermuteProtocol
 func (rfp RefreshProtocol) AllocateShare(inputLevel, outputLevel int) multiparty.RefreshShare {
-	return rfp.MaskedTransformProtocol.AllocateShare(inputLevel, outputLevel)
+	_ = "STUB: not implemented"
+	return *new(multiparty.RefreshShare)
 }
 
 // GenShare generates a share for the Refresh protocol.
 // ct1 is degree 1 element of a rlwe.Ciphertext, i.e. rlwe.Ciphertext.Value[1].
 func (rfp RefreshProtocol) GenShare(sk *rlwe.SecretKey, ct *rlwe.Ciphertext, crp multiparty.KeySwitchCRP, shareOut *multiparty.RefreshShare) (err error) {
-	return rfp.MaskedTransformProtocol.GenShare(sk, sk, ct, crp, nil, shareOut)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // AggregateShares aggregates two parties' shares in the Refresh protocol.
 func (rfp RefreshProtocol) AggregateShares(share1, share2 multiparty.RefreshShare, shareOut *multiparty.RefreshShare) (err error) {
-	return rfp.MaskedTransformProtocol.AggregateShares(share1, share2, shareOut)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // Finalize applies Decrypt, Recode and Recrypt on the input ciphertext.
 func (rfp RefreshProtocol) Finalize(ctIn *rlwe.Ciphertext, crp multiparty.KeySwitchCRP, share multiparty.RefreshShare, opOut *rlwe.Ciphertext) (err error) {
-	return rfp.MaskedTransformProtocol.Transform(ctIn, nil, crp, share, opOut)
+	_ = "STUB: not implemented"
+	return nil
 }

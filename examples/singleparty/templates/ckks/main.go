@@ -2,7 +2,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
@@ -78,31 +77,14 @@ func main() {
 
 // PrintPrecisionStats decrypts, decodes and prints the precision stats of a ciphertext.
 func PrintPrecisionStats(params ckks.Parameters, ct *rlwe.Ciphertext, want []float64, ecd *ckks.Encoder, dec *rlwe.Decryptor) {
-
-	var err error
+	_ = "STUB: not implemented"
 
 	// Decrypts the vector of plaintext values
-	pt := dec.DecryptNew(ct)
-
-	// Decodes the plaintext
-	have := make([]float64, params.MaxSlots())
-	if err = ecd.Decode(pt, have); err != nil {
-		panic(err)
-	}
-
-	// Pretty prints some values
-	fmt.Printf("Have: ")
-	for i := 0; i < 4; i++ {
-		fmt.Printf("%20.15f ", have[i])
-	}
-	fmt.Printf("...\n")
-
-	fmt.Printf("Want: ")
-	for i := 0; i < 4; i++ {
-		fmt.Printf("%20.15f ", want[i])
-	}
-	fmt.Printf("...\n")
-
-	// Pretty prints the precision stats
-	fmt.Println(ckks.GetPrecisionStats(params, ecd, dec, have, want, 0, false).String())
+	return
 }
+
+// Decodes the plaintext
+
+// Pretty prints some values
+
+// Pretty prints the precision stats

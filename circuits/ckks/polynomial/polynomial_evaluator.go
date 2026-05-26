@@ -1,8 +1,6 @@
 package polynomial
 
 import (
-	"fmt"
-
 	"github.com/tuneinsight/lattigo/v6/circuits/common/polynomial"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/schemes/ckks"
@@ -19,13 +17,8 @@ type Evaluator struct {
 // NewEvaluator instantiates a new [Evaluator] from a [ckks.Evaluator].
 // This method is allocation free.
 func NewEvaluator(params ckks.Parameters, eval *ckks.Evaluator) *Evaluator {
-	return &Evaluator{
-		Parameters: params,
-		Evaluator: polynomial.Evaluator[*bignum.Complex]{
-			Evaluator:         eval,
-			CoefficientGetter: CoefficientGetter{values: make([]*bignum.Complex, params.MaxSlots())},
-		},
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // Evaluate evaluates a polynomial on the input Ciphertext in ceil(log2(deg+1)) levels.
@@ -40,44 +33,16 @@ func NewEvaluator(params ckks.Parameters, eval *ckks.Evaluator) *Evaluator {
 // targetScale: the desired output scale. This value shouldn't differ too much from the original ciphertext scale. It can
 // for example be used to correct small deviations in the ciphertext scale and reset it to the default scale.
 func (eval Evaluator) Evaluate(ct *rlwe.Ciphertext, p interface{}, targetScale rlwe.Scale) (opOut *rlwe.Ciphertext, err error) {
-
-	var phe interface{}
-	switch p := p.(type) {
-	case Polynomial:
-		phe = polynomial.Polynomial(p)
-	case PolynomialVector:
-		phe = polynomial.PolynomialVector(p)
-	default:
-		phe = p
-	}
-
-	levelsConsumedPerRescaling := eval.Parameters.LevelsConsumedPerRescaling()
-
-	return eval.Evaluator.Evaluate(ct, phe, targetScale, levelsConsumedPerRescaling, &simEvaluator{eval.Parameters, levelsConsumedPerRescaling})
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // EvaluateFromPowerBasis evaluates a polynomial using the provided [polynomial.PowerBasis], holding pre-computed powers of X.
 // This method is the same as [Evaluate] except that the encrypted input is a [polynomial.PowerBasis].
 // See [Evaluate] for additional information.
 func (eval Evaluator) EvaluateFromPowerBasis(pb polynomial.PowerBasis, p interface{}, targetScale rlwe.Scale) (opOut *rlwe.Ciphertext, err error) {
-
-	var phe interface{}
-	switch p := p.(type) {
-	case Polynomial:
-		phe = polynomial.Polynomial(p)
-	case PolynomialVector:
-		phe = polynomial.PolynomialVector(p)
-	default:
-		phe = p
-	}
-
-	levelsConsumedPerRescaling := eval.Parameters.LevelsConsumedPerRescaling()
-
-	if _, ok := pb.Value[1]; !ok {
-		return nil, fmt.Errorf("cannot EvaluateFromPowerBasis: X^{1} is nil")
-	}
-
-	return eval.Evaluator.Evaluate(pb, phe, targetScale, levelsConsumedPerRescaling, &simEvaluator{eval.Parameters, levelsConsumedPerRescaling})
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // CoefficientGetter is a struct that implements the
@@ -90,25 +55,12 @@ type CoefficientGetter struct {
 // of each polynomial of [polynomial.PolynomialVector] indexed by its Mapping.
 // See [polynomial.PolynomialVector] for additional information about the Mapping.
 func (c CoefficientGetter) GetVectorCoefficient(pol polynomial.PolynomialVector, k int) (values []*bignum.Complex) {
-
-	values = c.values
-
-	for j := range values {
-		values[j] = nil
-	}
-
-	mapping := pol.Mapping
-
-	for i, p := range pol.Value {
-		for _, j := range mapping[i] {
-			values[j] = p.Coeffs[k]
-		}
-	}
-
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // GetSingleCoefficient returns the k-th coefficient of Polynomial as the type *[bignum.Complex].
 func (c CoefficientGetter) GetSingleCoefficient(pol polynomial.Polynomial, k int) (value *bignum.Complex) {
-	return pol.Coeffs[k]
+	_ = "STUB: not implemented"
+	return nil
 }

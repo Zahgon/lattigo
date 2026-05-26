@@ -24,15 +24,7 @@ import (
 // ========================================
 // Functions to evaluate with BlindRotation
 // ========================================
-func sign(x float64) (y float64) {
-	if x > 0 {
-		return 1
-	} else if x < 0 {
-		return -1
-	} else {
-		return 0
-	}
-}
+func sign(x float64) (y float64) { _ = "STUB: not implemented"; return 0 }
 
 func main() {
 

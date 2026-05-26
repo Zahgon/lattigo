@@ -1,15 +1,11 @@
 package multiparty
 
 import (
-	"fmt"
 	"io"
-	"math"
 
 	"github.com/tuneinsight/lattigo/v6/ring"
 
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
-	"github.com/tuneinsight/lattigo/v6/utils"
-	"github.com/tuneinsight/lattigo/v6/utils/sampling"
 )
 
 // KeySwitchProtocol is the structure storing the parameters and precomputations for the collective key-switching protocol.
@@ -33,49 +29,27 @@ type KeySwitchCRP struct {
 // secret-shares are distributed among j parties, re-encrypting the ciphertext under another public-key, whose secret-shares are also known to the
 // parties.
 func NewKeySwitchProtocol(params rlwe.ParameterProvider, noiseFlooding ring.DistributionParameters) (KeySwitchProtocol, error) {
-	cks := KeySwitchProtocol{}
-	cks.params = *params.GetRLWEParameters()
-	prng, err := sampling.NewPRNG()
-
-	// Sanity check, this error should not happen.
-	if err != nil {
-		panic(err)
-	}
-
-	// EncFreshSK + sigmaSmudging
-
-	switch noise := noiseFlooding.(type) {
-	case ring.DiscreteGaussian:
-		eFresh := cks.params.NoiseFreshSK()
-		eNoise := noise.Sigma
-		eSigma := math.Sqrt(eFresh*eFresh + eNoise*eNoise)
-		cks.noise = ring.DiscreteGaussian{Sigma: eSigma, Bound: 6 * eSigma}
-	default:
-		return cks, fmt.Errorf("invalid distribution type, expected %T but got %T", ring.DiscreteGaussian{}, noise)
-	}
-
-	cks.noiseSampler, err = ring.NewSampler(prng, cks.params.RingQ(), cks.noise, false)
-
-	// Sanity check, this error should not happen.
-	if err != nil {
-		panic(err)
-	}
-
-	return cks, nil
+	_ = "STUB: not implemented"
+	return *new(KeySwitchProtocol), nil
 }
+
+// Sanity check, this error should not happen.
+
+// EncFreshSK + sigmaSmudging
+
+// Sanity check, this error should not happen.
 
 // AllocateShare allocates the shares of the KeySwitchProtocol
 func (cks KeySwitchProtocol) AllocateShare(level int) KeySwitchShare {
-	return KeySwitchShare{cks.params.RingQ().AtLevel(level).NewPoly()}
+	_ = "STUB: not implemented"
+	return *new(KeySwitchShare)
 }
 
 // SampleCRP samples a common random polynomial to be used in the KeySwitch protocol from the provided
 // common reference string.
 func (cks KeySwitchProtocol) SampleCRP(level int, crs CRS) KeySwitchCRP {
-	ringQ := cks.params.RingQ().AtLevel(level)
-	crp := ringQ.NewPoly()
-	ring.NewUniformSampler(crs, ringQ).Read(crp)
-	return KeySwitchCRP{Value: crp}
+	_ = "STUB: not implemented"
+	return *new(KeySwitchCRP)
 }
 
 // GenShare computes a party's share in the KeySwitchcol from secret-key skInput to secret-key skOutput.
@@ -83,78 +57,35 @@ func (cks KeySwitchProtocol) SampleCRP(level int, crs CRS) KeySwitchCRP {
 //
 // Expected noise: ctNoise + encFreshSk + smudging
 func (cks KeySwitchProtocol) GenShare(skInput, skOutput *rlwe.SecretKey, ct *rlwe.Ciphertext, shareOut *KeySwitchShare) {
-
-	levelQ := utils.Min(shareOut.Value.Level(), ct.Value[1].Level())
-
-	shareOut.Value.Resize(levelQ)
-
-	ringQ := cks.params.RingQ().AtLevel(levelQ)
-	buffDelta := ringQ.NewPoly()
-	buffQ := cks.params.RingQ().NewPoly()
-
-	ringQ.Sub(skInput.Value.Q, skOutput.Value.Q, buffDelta)
-
-	var c1NTT ring.Poly
-	if !ct.IsNTT {
-		ringQ.NTTLazy(ct.Value[1], buffQ)
-		c1NTT = buffQ
-	} else {
-		c1NTT = ct.Value[1]
-	}
-
-	// c1NTT * (skIn - skOut)
-	ringQ.MulCoeffsMontgomeryLazy(c1NTT, buffDelta, shareOut.Value)
-
-	if !ct.IsNTT {
-		// InvNTT(c1NTT * (skIn - skOut)) + e
-		ringQ.INTTLazy(shareOut.Value, shareOut.Value)
-		cks.noiseSampler.AtLevel(levelQ).ReadAndAdd(shareOut.Value)
-	} else {
-		// c1NTT * (skIn - skOut) + e
-		cks.noiseSampler.AtLevel(levelQ).Read(buffQ)
-		ringQ.NTT(buffQ, buffQ)
-		ringQ.Add(shareOut.Value, buffQ, shareOut.Value)
-	}
+	_ = "STUB: not implemented"
+	return
 }
+
+// c1NTT * (skIn - skOut)
+
+// InvNTT(c1NTT * (skIn - skOut)) + e
+
+// c1NTT * (skIn - skOut) + e
 
 // AggregateShares is the second part of the unique round of the [KeySwitchProtocol] protocol. Upon receiving the j-1 elements each party computes:
 //
 // [ctx[0] + sum((skInput_i - skOutput_i) * ctx[0] + e_i), ctx[1]]
 func (cks KeySwitchProtocol) AggregateShares(share1, share2 KeySwitchShare, shareOut *KeySwitchShare) (err error) {
-	if share1.Level() != share2.Level() || share1.Level() != shareOut.Level() {
-		return fmt.Errorf("cannot AggregateShares: shares levels do not match")
-	}
-
-	cks.params.RingQ().AtLevel(share1.Level()).Add(share1.Value, share2.Value, shareOut.Value)
-	return
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // KeySwitch performs the actual keyswitching operation on a ciphertext ct and put the result in opOut
 func (cks KeySwitchProtocol) KeySwitch(ctIn *rlwe.Ciphertext, combined KeySwitchShare, opOut *rlwe.Ciphertext) {
-
-	level := ctIn.Level()
-
-	if ctIn != opOut {
-
-		opOut.Resize(ctIn.Degree(), level)
-
-		opOut.Value[1].CopyLvl(level, ctIn.Value[1])
-
-		*opOut.MetaData = *ctIn.MetaData
-	}
-
-	cks.params.RingQ().AtLevel(level).Add(ctIn.Value[0], combined.Value, opOut.Value[0])
+	_ = "STUB: not implemented"
+	return
 }
 
 // Level returns the level of the target share.
-func (ckss KeySwitchShare) Level() int {
-	return ckss.Value.Level()
-}
+func (ckss KeySwitchShare) Level() int { _ = "STUB: not implemented"; return 0 }
 
 // BinarySize returns the serialized size of the object in bytes.
-func (ckss KeySwitchShare) BinarySize() int {
-	return ckss.Value.BinarySize()
-}
+func (ckss KeySwitchShare) BinarySize() int { _ = "STUB: not implemented"; return 0 }
 
 // WriteTo writes the object on an [io.Writer]. It implements the [io.WriterTo]
 // interface, and will write exactly object.BinarySize() bytes on w.
@@ -168,31 +99,36 @@ func (ckss KeySwitchShare) BinarySize() int {
 //   - When writing to a pre-allocated var b []byte, it is preferable to pass
 //     buffer.NewBuffer(b) as w (see lattigo/utils/buffer/buffer.go).
 func (ckss KeySwitchShare) WriteTo(w io.Writer) (n int64, err error) {
-	return ckss.Value.WriteTo(w)
+	_ = "STUB: not implemented"
+	return 0, nil
+
+	// ReadFrom reads on the object from an [io.Writer]. It implements the
+	// [io.ReaderFrom] interface.
+	//
+	// Unless r implements the [buffer.Reader] interface (see see lattigo/utils/buffer/reader.go),
+	// it will be wrapped into a [bufio.Reader]. Since this requires allocation, it
+	// is preferable to pass a [buffer.Reader] directly:
+	//
+	//   - When reading multiple values from a [io.Reader], it is preferable to first
+	//     first wrap [io.Reader] in a pre-allocated [bufio.Reader].
+	//   - When reading from a var b []byte, it is preferable to pass a buffer.NewBuffer(b)
+	//     as w (see lattigo/utils/buffer/buffer.go).
 }
 
-// ReadFrom reads on the object from an [io.Writer]. It implements the
-// [io.ReaderFrom] interface.
-//
-// Unless r implements the [buffer.Reader] interface (see see lattigo/utils/buffer/reader.go),
-// it will be wrapped into a [bufio.Reader]. Since this requires allocation, it
-// is preferable to pass a [buffer.Reader] directly:
-//
-//   - When reading multiple values from a [io.Reader], it is preferable to first
-//     first wrap [io.Reader] in a pre-allocated [bufio.Reader].
-//   - When reading from a var b []byte, it is preferable to pass a buffer.NewBuffer(b)
-//     as w (see lattigo/utils/buffer/buffer.go).
 func (ckss *KeySwitchShare) ReadFrom(r io.Reader) (n int64, err error) {
-	return ckss.Value.ReadFrom(r)
+	_ = "STUB: not implemented"
+	return 0, nil
 }
 
 // MarshalBinary encodes a KeySwitch share on a slice of bytes.
 func (ckss KeySwitchShare) MarshalBinary() (p []byte, err error) {
-	return ckss.Value.MarshalBinary()
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // UnmarshalBinary decodes a slice of bytes generated by
 // [KeySwitchShare.MarshalBinary] or[KeySwitchShare.WriteTo] on the object.
 func (ckss *KeySwitchShare) UnmarshalBinary(p []byte) (err error) {
-	return ckss.Value.UnmarshalBinary(p)
+	_ = "STUB: not implemented"
+	return nil
 }
